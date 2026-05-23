@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.env
+data.db
+static/uploads/
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+.claude/
+*.exe
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.spec

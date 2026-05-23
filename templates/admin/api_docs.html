@@ -1,0 +1,185 @@
+{% extends "admin/base.html" %}
+{% block title %}API 文档 - 管理后台{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1><span class="h1-dot"></span>API 文档</h1>
+        <p class="page-subtitle">通过 API Key 对接卡密、商品库存等功能</p>
+    </div>
+</div>
+
+<div class="api-docs">
+
+    <div class="api-toc">
+        <strong>目录</strong>
+        <ul>
+            <li><a href="#auth">认证方式</a></li>
+            <li><a href="#errors">错误响应</a></li>
+            <li><a href="#ping">健康检查 · /api/v1/ping</a></li>
+            <li><a href="#cards">卡密接口</a>
+                <ul>
+                    <li><a href="#cards-list">查询卡密列表</a></li>
+                    <li><a href="#cards-get">查询单个卡密</a></li>
+                    <li><a href="#cards-create">添加卡密</a></li>
+                    <li><a href="#cards-delete">删除卡密</a></li>
+                </ul>
+            </li>
+            <li><a href="#products">商品 / 库存接口</a>
+                <ul>
+                    <li><a href="#products-list">查询商品列表</a></li>
+                    <li><a href="#products-get">查询单个商品</a></li>
+                    <li><a href="#products-stock">追加库存</a></li>
+                </ul>
+            </li>
+            <li><a href="#stats">统计 · /api/v1/stats</a></li>
+        </ul>
+    </div>
+
+    <h2 id="auth">认证方式</h2>
+    <p>所有 <code>/api/v1/*</code> 接口都需要 API Key。在「系统设置 → API 接口」创建 Key 后，通过下面任一方式传入：</p>
+    <ul>
+        <li>请求头 <code>X-API-Key: zfk_xxxxx</code>（推荐）</li>
+        <li>请求头 <code>Authorization: Bearer zfk_xxxxx</code></li>
+    </ul>
+    <div class="api-callout">
+        Base URL：<code>{{ base_url }}</code><br>
+        Key 仅在创建时显示一次，请妥善保管。被禁用或删除的 Key 立即失效。
+    </div>
+
+    <h2 id="errors">错误响应</h2>
+    <p>失败请求统一返回 <code>{ "detail": "错误描述" }</code>，HTTP 状态码：</p>
+    <ul>
+        <li><code>400</code> 参数错误</li>
+        <li><code>401</code> 缺少或无效的 API Key</li>
+        <li><code>404</code> 资源不存在</li>
+        <li><code>409</code> 资源冲突（如卡密已存在）</li>
+    </ul>
+
+    <h2 id="ping">健康检查</h2>
+    <div class="api-endpoint"><span class="api-method get">GET</span><code>/api/v1/ping</code></div>
+    <p>验证 API Key 是否有效。</p>
+    <pre><code>curl -H "X-API-Key: zfk_xxxxx" {{ base_url }}/api/v1/ping</code></pre>
+    <pre><code>{ "ok": true, "message": "pong" }</code></pre>
+
+    <h2 id="cards">卡密接口</h2>
+
+    <h3 id="cards-list">查询卡密列表</h3>
+    <div class="api-endpoint"><span class="api-method get">GET</span><code>/api/v1/cards</code></div>
+    <p>支持分页与筛选。Query 参数：</p>
+    <ul>
+        <li><code>page</code> 页码，默认 1</li>
+        <li><code>per_page</code> 每页数量，默认 50，最大 200</li>
+        <li><code>key</code> 按卡密内容模糊搜索（可选）</li>
+        <li><code>card_type</code> 类型过滤：<code>normal</code> | <code>points</code> | <code>shared_stock</code>（可选）</li>
+    </ul>
+    <pre><code>curl -H "X-API-Key: zfk_xxxxx" \
+  "{{ base_url }}/api/v1/cards?page=1&per_page=20&card_type=normal"</code></pre>
+    <pre><code>{
+  "ok": true,
+  "page": 1, "per_page": 20, "total": 128,
+  "items": [
+    {
+      "id": 1, "key": "ABC123", "card_type": "normal",
+      "content": "卡密内容", "description": "",
+      "total_points": 0, "used_points": 0, "remaining": 0,
+      "product_id": null,
+      "created_at": "2026-05-23T10:00:00"
+    }
+  ]
+}</code></pre>
+
+    <h3 id="cards-get">查询单个卡密</h3>
+    <div class="api-endpoint"><span class="api-method get">GET</span><code>/api/v1/cards/{id}</code></div>
+    <div class="api-endpoint"><span class="api-method get">GET</span><code>/api/v1/cards/by-key/{key}</code></div>
+    <p>按 ID 或卡密字符串查询单条。</p>
+    <pre><code>curl -H "X-API-Key: zfk_xxxxx" \
+  "{{ base_url }}/api/v1/cards/by-key/ABC123"</code></pre>
+
+    <h3 id="cards-create">添加卡密</h3>
+    <div class="api-endpoint"><span class="api-method post">POST</span><code>/api/v1/cards</code></div>
+    <p>请求体（JSON）：</p>
+    <ul>
+        <li><code>key</code> 字符串，必填，唯一</li>
+        <li><code>card_type</code> 字符串，<code>normal</code>（默认） | <code>points</code> | <code>shared_stock</code></li>
+        <li><code>content</code> <code>normal</code> 时为单条内容；<code>points</code> 时为多行内容（每行一条额度）</li>
+        <li><code>description</code> 可选说明</li>
+        <li><code>product_id</code> <code>shared_stock</code> 必填，关联商品 ID</li>
+        <li><code>total_points</code> <code>shared_stock</code> 必填，可提取额度</li>
+    </ul>
+
+    <p><strong>普通卡密：</strong></p>
+    <pre><code>curl -X POST {{ base_url }}/api/v1/cards \
+  -H "X-API-Key: zfk_xxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "ABC123",
+    "card_type": "normal",
+    "content": "卡密对应的内容",
+    "description": "VIP 30 天"
+  }'</code></pre>
+
+    <p><strong>额度卡密（点数型）：</strong></p>
+    <pre><code>curl -X POST {{ base_url }}/api/v1/cards \
+  -H "X-API-Key: zfk_xxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "POINTS-100",
+    "card_type": "points",
+    "content": "item-01\nitem-02\nitem-03"
+  }'</code></pre>
+
+    <p><strong>共享库存卡密：</strong></p>
+    <pre><code>curl -X POST {{ base_url }}/api/v1/cards \
+  -H "X-API-Key: zfk_xxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "SHARED-50",
+    "card_type": "shared_stock",
+    "product_id": 1,
+    "total_points": 50,
+    "description": "可提 50 次"
+  }'</code></pre>
+
+    <h3 id="cards-delete">删除卡密</h3>
+    <div class="api-endpoint"><span class="api-method delete">DELETE</span><code>/api/v1/cards/{id}</code></div>
+    <div class="api-endpoint"><span class="api-method delete">DELETE</span><code>/api/v1/cards/by-key/{key}</code></div>
+    <pre><code>curl -X DELETE -H "X-API-Key: zfk_xxxxx" \
+  {{ base_url }}/api/v1/cards/by-key/ABC123</code></pre>
+    <pre><code>{ "ok": true }</code></pre>
+
+    <h2 id="products">商品 / 库存接口</h2>
+
+    <h3 id="products-list">查询商品列表</h3>
+    <div class="api-endpoint"><span class="api-method get">GET</span><code>/api/v1/products</code></div>
+    <pre><code>curl -H "X-API-Key: zfk_xxxxx" {{ base_url }}/api/v1/products</code></pre>
+    <pre><code>{
+  "ok": true,
+  "items": [
+    { "id": 1, "name": "商品A", "total_stock": 100, "used_stock": 12, "remaining": 88 }
+  ]
+}</code></pre>
+
+    <h3 id="products-get">查询单个商品</h3>
+    <div class="api-endpoint"><span class="api-method get">GET</span><code>/api/v1/products/{id}</code></div>
+
+    <h3 id="products-stock">追加库存</h3>
+    <div class="api-endpoint"><span class="api-method post">POST</span><code>/api/v1/products/{id}/stock</code></div>
+    <p>向已有商品追加库存（不会重置已用数）。请求体：</p>
+    <ul>
+        <li><code>stock</code> 字符串，多行；每行一条库存</li>
+    </ul>
+    <pre><code>curl -X POST {{ base_url }}/api/v1/products/1/stock \
+  -H "X-API-Key: zfk_xxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "stock": "key-01\nkey-02\nkey-03" }'</code></pre>
+    <pre><code>{
+  "ok": true, "added": 3,
+  "product": { "id": 1, "name": "商品A", "total_stock": 103, "used_stock": 12, "remaining": 91 }
+}</code></pre>
+
+    <h2 id="stats">统计</h2>
+    <div class="api-endpoint"><span class="api-method get">GET</span><code>/api/v1/stats</code></div>
+    <pre><code>{ "ok": true, "total_cards": 128, "total_products": 6 }</code></pre>
+
+</div>
+{% endblock %}

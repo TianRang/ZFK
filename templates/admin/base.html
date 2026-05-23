@@ -1,0 +1,104 @@
+{% if is_partial(request) %}
+{# ========== PARTIAL MODE: 仅输出内容片段 ========== #}
+{% block content %}{% endblock %}
+{% else %}
+{# ========== FULL MODE: 完整页面 = 轮盘 shell + 隐藏的初始面板 ========== #}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}管理后台{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    {% set _site = request.state.site if request.state.site is defined else {} %}
+</head>
+<body class="wheel-body">
+    <canvas class="ripple-canvas" id="rippleCanvas"></canvas>
+    <div class="wheel-shell" id="wheelShell">
+
+        <header class="wheel-topbar">
+            <div class="wheel-brand">
+                <span class="wheel-brand-dot"></span>
+                <span>{{ _site.site_name if _site.site_name else '管理后台' }}</span>
+            </div>
+            <div class="wheel-user">
+                <span class="user-avatar">{{ user[0] if user else 'A' }}</span>
+                <span class="wheel-user-name">{{ user }}</span>
+                <form action="{{ admin_prefix }}/logout" method="post" style="display:inline">
+                    <button type="submit" class="btn-logout" title="退出">退出</button>
+                </form>
+            </div>
+        </header>
+
+        <div class="wheel-stage" id="wheelStage" data-admin-prefix="{{ admin_prefix }}">
+            {% set wheel_items = [
+                {'key':'dashboard', 'label':'仪表盘',   'href': admin_prefix ~ '/',          'color':'#8b5cf6'},
+                {'key':'cards',     'label':'卡密列表', 'href': admin_prefix ~ '/cards',     'color':'#38bdf8'},
+                {'key':'card_add',  'label':'添加卡密', 'href': admin_prefix ~ '/cards/add', 'color':'#34d399'},
+                {'key':'batch',     'label':'批量导入', 'href': admin_prefix ~ '/cards/batch','color':'#fbbf24'},
+                {'key':'products',  'label':'商品管理', 'href': admin_prefix ~ '/products',  'color':'#fb923c'},
+                {'key':'settings',  'label':'系统设置', 'href': admin_prefix ~ '/settings',  'color':'#f472b6'},
+                {'key':'api_docs',  'label':'API 文档', 'href': admin_prefix ~ '/api-docs',  'color':'#a78bfa'},
+                {'key':'front',     'label':'访问前台', 'href':'/', 'color':'#22d3ee', 'external':true}
+            ] %}
+            <svg class="wheel-svg" viewBox="-160 -160 320 320" id="wheelSvg" aria-label="功能轮盘">
+                <defs>
+                    {% for item in wheel_items %}
+                    <radialGradient id="wg-{{ item.key }}" cx="50%" cy="50%" r="65%">
+                        <stop offset="0%"   stop-color="{{ item.color }}" stop-opacity="0.55"/>
+                        <stop offset="100%" stop-color="{{ item.color }}" stop-opacity="0.18"/>
+                    </radialGradient>
+                    {% endfor %}
+                </defs>
+                {% set n = wheel_items | length %}
+                <g class="wheel-rotor" id="wheelRotor">
+                    {% for item in wheel_items %}
+                    <g class="wheel-slice"
+                       data-key="{{ item.key }}"
+                       data-href="{{ item.href }}"
+                       data-color="{{ item.color }}"
+                       data-index="{{ loop.index0 }}"
+                       data-total="{{ n }}"
+                       {% if item.external %}data-external="1"{% endif %}
+                       style="--slice-color: {{ item.color }};">
+                        <path class="wheel-slice-path" fill="url(#wg-{{ item.key }})"></path>
+                        <text class="wheel-slice-label" text-anchor="middle" dominant-baseline="middle">{{ item.label }}</text>
+                    </g>
+                    {% endfor %}
+                </g>
+                <circle class="wheel-hub" cx="0" cy="0" r="38" />
+                <text class="wheel-hub-text" x="0" y="0" text-anchor="middle" dominant-baseline="middle">ZFK</text>
+            </svg>
+
+            <div class="wheel-hint" id="wheelHint">将光标移至扇区，点击展开</div>
+        </div>
+
+        <div class="panel-overlay" id="panelOverlay">
+            <div class="panel-stage" id="panelStage" role="dialog" aria-modal="true">
+                <header class="panel-header">
+                    <div class="panel-header-title" id="panelHeaderTitle">
+                        <span class="panel-header-dot"></span>
+                        <span id="panelHeaderText">管理面板</span>
+                    </div>
+                    <button class="panel-close" id="panelClose" aria-label="关闭">
+                        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                    </button>
+                </header>
+                <div class="panel-body" id="panelBody"></div>
+            </div>
+        </div>
+    </div>
+
+    {% set _initial_path = request.url.path %}
+    {% set _is_root = (_initial_path == admin_prefix or _initial_path == admin_prefix + '/') %}
+    {% if not _is_root %}
+    <template id="initialPanelContent">{{ self.content() }}</template>
+    <script>window.__INITIAL_PANEL_URL__ = {{ (request.url.path ~ ('?' ~ request.url.query if request.url.query else '')) | tojson }};</script>
+    {% endif %}
+
+    <script src="/static/js/ripple.js"></script>
+    <script src="/static/js/wheel.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+{% endif %}

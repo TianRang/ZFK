@@ -1,0 +1,118 @@
+{% extends "admin/base.html" %}
+{% block title %}商品管理 - 管理后台{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1><span class="h1-dot"></span>商品管理</h1>
+        <p class="page-subtitle">商品作为共享库存类型卡密的库存池，可被多张卡密绑定</p>
+    </div>
+    <a href="{{ admin_prefix }}/products/add" class="btn btn-primary">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+        添加商品
+    </a>
+</div>
+
+<div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="搜索商品…" class="filter-input">
+    <span style="font-size:.78rem;color:var(--text-muted)">共 {{ products|length }} 个商品</span>
+</div>
+
+<div class="table-wrapper">
+<table class="table" id="productsTable">
+    <thead>
+        <tr>
+            <th style="width:60px">ID</th>
+            <th>商品名称</th>
+            <th style="width:240px">库存使用情况</th>
+            <th style="width:140px">创建时间</th>
+            <th style="width:140px">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in products %}
+        {% set avail = p.total_stock - p.used_stock %}
+        {% set used_pct = ((p.used_stock / p.total_stock) * 100)|int if p.total_stock else 0 %}
+        <tr data-name="{{ p.name|lower }}">
+            <td style="color:var(--text-muted);font-size:.75rem">{{ p.id }}</td>
+            <td><strong>{{ p.name }}</strong></td>
+            <td>
+                <div style="display:flex;align-items:center;gap:.7rem">
+                    <div style="flex:1;min-width:60px">
+                        <div class="usage-bar-wrap" style="height:6px">
+                            <div class="usage-bar usage-bar-green" style="width:{{ 100 - used_pct }}%"></div>
+                        </div>
+                    </div>
+                    <span style="font-size:.75rem;color:var(--text-muted);white-space:nowrap" class="tabnums">
+                        <strong style="color:{% if avail > 0 %}var(--success){% else %}var(--danger){% endif %}">{{ avail }}</strong>/{{ p.total_stock }}
+                    </span>
+                </div>
+            </td>
+            <td style="font-size:.75rem;color:var(--text-muted)">{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '—' }}</td>
+            <td>
+                <div style="display:flex;gap:.4rem">
+                    <a href="{{ admin_prefix }}/products/{{ p.id }}/edit" class="btn btn-sm">编辑</a>
+                    <form action="{{ admin_prefix }}/products/{{ p.id }}/delete" method="post" data-confirm-delete="「{{ p.name }}」？关联的卡密将无法提取">
+                        <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty-cell">
+            <svg class="empty-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" clip-rule="evenodd"/></svg>
+            <div>暂无商品</div>
+            <div style="margin-top:.5rem"><a href="{{ admin_prefix }}/products/add">立即添加 →</a></div>
+        </td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<div class="card-list">
+    {% for p in products %}
+    {% set avail = p.total_stock - p.used_stock %}
+    <div class="card-item" data-name="{{ p.name|lower }}">
+        <div class="card-item-row">
+            <span class="card-item-label">名称</span>
+            <span class="card-item-value"><strong>{{ p.name }}</strong></span>
+        </div>
+        <div class="card-item-row">
+            <span class="card-item-label">库存</span>
+            <span class="card-item-value tabnums">
+                <strong style="color:{% if avail > 0 %}var(--success){% else %}var(--danger){% endif %}">{{ avail }}</strong>/{{ p.total_stock }}
+            </span>
+        </div>
+        <div class="card-item-actions">
+            <a href="{{ admin_prefix }}/products/{{ p.id }}/edit" class="btn btn-sm" style="flex:1">编辑</a>
+            <form action="{{ admin_prefix }}/products/{{ p.id }}/delete" method="post" style="flex:1" data-confirm-delete>
+                <button type="submit" class="btn btn-sm btn-danger" style="width:100%">删除</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+(function() {
+    var input = document.getElementById('searchInput');
+    function filterProducts() {
+        var q = (input.value || '').toLowerCase();
+        document.querySelectorAll('#productsTable tbody tr[data-name]').forEach(function(el) {
+            el.style.display = (!q || (el.dataset.name || '').indexOf(q) !== -1) ? '' : 'none';
+        });
+        document.querySelectorAll('.card-list .card-item[data-name]').forEach(function(el) {
+            el.style.display = (!q || (el.dataset.name || '').indexOf(q) !== -1) ? '' : 'none';
+        });
+    }
+    if (input) input.addEventListener('input', filterProducts);
+
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        if (!form || !form.hasAttribute('data-confirm-delete')) return;
+        var label = form.getAttribute('data-confirm-delete');
+        var msg = label ? '确定删除' + label : '确定删除？';
+        if (!confirm(msg)) e.preventDefault();
+    });
+})();
+</script>
+{% endblock %}

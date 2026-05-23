@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_name }}</title>
+    <link rel="stylesheet" href="/static/css/cartoon.css">
+</head>
+<body class="cartoon-body">
+    <!-- 背景装饰：云朵、星星、爱心 -->
+    <div class="bg-deco" aria-hidden="true">
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <div class="star star-1">✦</div>
+        <div class="star star-2">✧</div>
+        <div class="heart heart-1">♥</div>
+        <div class="heart heart-2">♥</div>
+    </div>
+
+    <main class="cartoon-stage">
+        <!-- 吉祥物 -->
+        <div class="mascot" aria-hidden="true">
+            <div class="mascot-shadow"></div>
+            <svg class="mascot-svg" viewBox="0 0 120 120" fill="none">
+                <!-- 身体 -->
+                <ellipse cx="60" cy="78" rx="38" ry="34" fill="#ffd9b8" stroke="#3b2a20" stroke-width="3"/>
+                <!-- 耳朵 -->
+                <path d="M28 52 L22 28 L46 42 Z" fill="#ffd9b8" stroke="#3b2a20" stroke-width="3" stroke-linejoin="round"/>
+                <path d="M92 52 L98 28 L74 42 Z" fill="#ffd9b8" stroke="#3b2a20" stroke-width="3" stroke-linejoin="round"/>
+                <path d="M30 48 L27 36 L40 44 Z" fill="#ff8aa1"/>
+                <path d="M90 48 L93 36 L80 44 Z" fill="#ff8aa1"/>
+                <!-- 脸颊腮红 -->
+                <ellipse cx="38" cy="80" rx="6" ry="4" fill="#ffb3c1"/>
+                <ellipse cx="82" cy="80" rx="6" ry="4" fill="#ffb3c1"/>
+                <!-- 眼睛 -->
+                <circle class="eye" cx="48" cy="70" r="4" fill="#3b2a20"/>
+                <circle class="eye" cx="72" cy="70" r="4" fill="#3b2a20"/>
+                <circle cx="49" cy="69" r="1.2" fill="#fff"/>
+                <circle cx="73" cy="69" r="1.2" fill="#fff"/>
+                <!-- 嘴巴 -->
+                <path d="M54 84 Q60 90 66 84" stroke="#3b2a20" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <!-- 胡须 -->
+                <path d="M30 78 L18 76" stroke="#3b2a20" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M30 82 L18 84" stroke="#3b2a20" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M90 78 L102 76" stroke="#3b2a20" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M90 82 L102 84" stroke="#3b2a20" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <section class="cartoon-card">
+            <h1 class="cartoon-title">{{ site_name }}</h1>
+            <p class="cartoon-subtitle">{{ site_subtitle }}</p>
+
+            {% if error %}
+            <div class="cartoon-alert">
+                <span class="alert-icon">!</span>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            {% if points_step %}
+            <form action="/" method="post" class="cartoon-form">
+                <input type="hidden" name="key" value="{{ key }}">
+                <input type="hidden" name="step" value="2">
+                <div class="form-group">
+                    <label for="amount">
+                        提取数量
+                        <span class="tag tag-success">剩余 {{ remaining }}</span>
+                    </label>
+                    <div class="cartoon-stepper" data-min="1" data-max="{{ remaining }}">
+                        <button type="button" data-step="-1" aria-label="减少">−</button>
+                        <input type="number" id="amount" name="amount" min="1" max="{{ remaining }}" value="1" required autofocus>
+                        <button type="button" data-step="1" aria-label="增加">+</button>
+                    </div>
+                    <p class="form-hint">每次最多提取 {{ remaining }} 条 ฅ^•ﻌ•^ฅ</p>
+                </div>
+                {% if card_description %}<div class="cartoon-note">{{ card_description }}</div>{% endif %}
+                <button type="submit" class="cartoon-btn cartoon-btn-primary" data-loading>
+                    确认提取
+                </button>
+            </form>
+            <form action="/" method="get" style="margin-top:.6rem">
+                <button type="submit" class="cartoon-btn cartoon-btn-ghost">← 返回</button>
+            </form>
+
+            {% elif content %}
+            <div class="cartoon-result">
+                <div class="result-header">
+                    <span class="result-emoji">🎉</span>
+                    <span>{{ extract_info or '提取成功啦' }}</span>
+                </div>
+                {% if card_description %}<div class="cartoon-note">{{ card_description }}</div>{% endif %}
+                <pre class="cartoon-result-body" id="result-text">{{ content }}</pre>
+                <button id="copyBtn" onclick="doCopy()" class="cartoon-btn cartoon-btn-warm">
+                    复制内容
+                </button>
+            </div>
+            <form action="/" method="get" style="margin-top:.6rem">
+                <button type="submit" class="cartoon-btn cartoon-btn-ghost">再次提取</button>
+            </form>
+
+            {% else %}
+            <form action="/" method="post" class="cartoon-form">
+                <input type="hidden" name="step" value="1">
+                <div class="form-group">
+                    <label for="key">卡密</label>
+                    <input type="text" id="key" name="key" placeholder="请输入您的卡密 ✿" value="{{ key or '' }}" required autofocus autocomplete="off" spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label for="captcha">验证码</label>
+                    <div class="captcha-row">
+                        <input type="text" id="captcha" name="captcha" placeholder="四位数字" required maxlength="4" autocomplete="off">
+                        <img id="captchaImg" src="{{ captcha_img }}" alt="验证码" onclick="refreshCaptcha()" title="点击刷新">
+                    </div>
+                </div>
+                <button type="submit" class="cartoon-btn cartoon-btn-primary" data-loading>
+                    提取 →
+                </button>
+            </form>
+
+            {% if card_description %}<div class="cartoon-note">{{ card_description }}</div>{% endif %}
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+    function refreshCaptcha() { location.reload(); }
+
+    function doCopy() {
+        var text = document.getElementById('result-text');
+        var btn  = document.getElementById('copyBtn');
+        if (!text || !btn) return;
+        navigator.clipboard.writeText(text.innerText).then(function() {
+            var html = btn.innerHTML;
+            btn.innerHTML = '已复制 ✓';
+            btn.classList.add('is-copied');
+            setTimeout(function() {
+                btn.innerHTML = html;
+                btn.classList.remove('is-copied');
+            }, 1800);
+        });
+    }
+
+    (function() {
+        var stepper = document.querySelector('.cartoon-stepper');
+        if (!stepper) return;
+        var input = stepper.querySelector('input[type="number"]');
+        var min = parseInt(stepper.dataset.min || '1', 10);
+        var max = parseInt(stepper.dataset.max || '999', 10);
+        stepper.querySelectorAll('button').forEach(function(b) {
+            b.addEventListener('click', function() {
+                var v = parseInt(input.value || '0', 10) || 0;
+                v += parseInt(b.dataset.step, 10);
+                if (v < min) v = min;
+                if (v > max) v = max;
+                input.value = v;
+            });
+        });
+        input.addEventListener('blur', function() {
+            var v = parseInt(input.value || '0', 10) || min;
+            if (v < min) v = min;
+            if (v > max) v = max;
+            input.value = v;
+        });
+    })();
+
+    document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function() {
+            var btn = form.querySelector('button[data-loading]');
+            if (btn) btn.classList.add('is-loading');
+        });
+    });
+    </script>
+</body>
+</html>

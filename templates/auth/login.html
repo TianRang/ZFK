@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 管理后台</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    {% set _site = request.state.site if request.state.site is defined else {} %}
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="brand-logo" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                </svg>
+            </div>
+            <h1>{{ _site.site_name if _site.site_name else '管理后台' }}</h1>
+            <h2>请使用管理员账号登录</h2>
+
+            {% if error %}
+            <div class="alert alert-error">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form action="{{ admin_prefix }}/login" method="post" id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" required autofocus autocomplete="username" placeholder="管理员用户名" spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="登录密码">
+                </div>
+                <div class="form-group">
+                    <label for="captcha">验证码</label>
+                    <div class="captcha-row">
+                        <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required maxlength="4" autocomplete="off">
+                        <img id="captchaImg" src="{{ captcha_img }}" alt="验证码" onclick="refreshCaptcha()" title="点击刷新">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" data-loading>登录</button>
+            </form>
+
+            <p class="auth-link">没有账号？<a href="{{ admin_prefix }}/register">立即注册</a></p>
+        </div>
+    </div>
+    <script>
+    function refreshCaptcha() { location.reload(); }
+    document.getElementById('loginForm').addEventListener('submit', function() {
+        var btn = this.querySelector('[data-loading]');
+        if (btn) btn.classList.add('is-loading');
+    });
+    </script>
+</body>
+</html>

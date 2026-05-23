@@ -1,0 +1,485 @@
+/* ZFK · 像素前台模板（超级马里奥风）
+   设计目标：8-bit 像素感、NES 调色板、硬阴影、砖块地面 */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --m-sky: #5C94FC;
+    --m-sky-deep: #3b6dd1;
+    --m-red: #E63E1A;
+    --m-red-dark: #a82610;
+    --m-yellow: #FBC744;
+    --m-yellow-dark: #c69414;
+    --m-green: #00A64C;
+    --m-green-dark: #007033;
+    --m-brown: #8B4513;
+    --m-brown-dark: #5b2a08;
+    --m-cream: #fff8d8;
+    --m-line: #1a0e04;
+    --m-text: #1a0e04;
+}
+
+html, body { height: 100%; }
+
+body.mario-body {
+    font-family: "Press Start 2P", "VT323", "Courier New", "Microsoft YaHei", monospace;
+    color: var(--m-text);
+    background:
+        linear-gradient(180deg, var(--m-sky) 0%, var(--m-sky) 75%, transparent 75%),
+        var(--m-sky);
+    min-height: 100vh;
+    overflow-x: hidden;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    line-height: 1.6;
+}
+
+/* ----- 背景：云朵、山丘、灌木 ----- */
+.mario-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+
+.m-cloud {
+    position: absolute;
+    background: #fff;
+    box-shadow:
+        -16px 0 0 #fff,
+        16px 0 0 #fff,
+        0 -10px 0 #fff,
+        0 10px 0 #fff,
+        -10px -6px 0 #fff,
+        10px -6px 0 #fff;
+    animation: m-cloud-drift 30s linear infinite;
+}
+.m-cloud-1 { width: 36px; height: 16px; top: 8%;  left: -10%; animation-delay: 0s; }
+.m-cloud-2 { width: 28px; height: 14px; top: 18%; left: -10%; animation-delay: -10s; }
+.m-cloud-3 { width: 32px; height: 16px; top: 28%; left: -10%; animation-delay: -20s; }
+@keyframes m-cloud-drift {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(120vw); }
+}
+
+.m-hill {
+    position: absolute;
+    bottom: 12%;
+    width: 200px; height: 90px;
+    background: var(--m-green);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    box-shadow: inset -10px -8px 0 rgba(0,0,0,0.18);
+}
+.m-hill-1 { left: 6%; }
+.m-hill-2 { right: 10%; transform: scale(1.3); }
+
+.m-bush {
+    position: absolute;
+    bottom: 12%;
+    width: 80px; height: 28px;
+    background: var(--m-green);
+    border-radius: 30px 30px 0 0 / 100% 100% 0 0;
+    box-shadow:
+        -16px 0 0 -4px var(--m-green),
+        16px 0 0 -4px var(--m-green);
+}
+.m-bush-1 { left: 30%; }
+.m-bush-2 { right: 22%; }
+
+/* ----- 地面：砖块条纹 ----- */
+.m-ground {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: 12%;
+    background:
+        repeating-linear-gradient(90deg,
+            var(--m-brown) 0 30px,
+            var(--m-brown-dark) 30px 32px),
+        var(--m-brown);
+    border-top: 4px solid var(--m-line);
+    box-shadow: inset 0 -8px 0 rgba(0,0,0,0.25);
+    z-index: 0;
+}
+.m-ground::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: -4px;
+    height: 4px;
+    background:
+        repeating-linear-gradient(90deg,
+            var(--m-line) 0 30px,
+            transparent 30px 32px);
+}
+
+/* ----- ? 砖块装饰 ----- */
+.m-block {
+    position: absolute;
+    width: 32px; height: 32px;
+    background: var(--m-yellow);
+    border: 3px solid var(--m-line);
+    box-shadow:
+        inset -3px -3px 0 var(--m-yellow-dark),
+        inset 3px 3px 0 #ffe89a,
+        4px 4px 0 var(--m-line);
+    color: #fff;
+    text-align: center;
+    font-size: 18px;
+    line-height: 26px;
+    text-shadow: 2px 2px 0 var(--m-line);
+    animation: m-block-bob 3s ease-in-out infinite;
+}
+.m-block-1 { top: 22%; left: 8%; animation-delay: 0s; }
+.m-block-2 { top: 18%; right: 10%; animation-delay: -1s; }
+@keyframes m-block-bob {
+    0%, 90%, 100% { transform: translateY(0); }
+    95%           { transform: translateY(-6px); }
+}
+
+/* ----- 主舞台 ----- */
+.mario-stage {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 1rem 14vh;
+}
+
+/* ----- 主卡片：像素质感 ----- */
+.mario-card {
+    position: relative;
+    width: min(460px, 100%);
+    background: var(--m-cream);
+    border: 4px solid var(--m-line);
+    padding: 1.6rem 1.4rem 1.4rem;
+    box-shadow:
+        6px 6px 0 var(--m-line),
+        inset -4px -4px 0 rgba(0,0,0,0.08),
+        inset 4px 4px 0 rgba(255,255,255,0.5);
+}
+.mario-card::before {
+    content: "";
+    position: absolute;
+    top: -4px; left: -4px; right: -4px; bottom: -4px;
+    border: 4px solid var(--m-line);
+    pointer-events: none;
+}
+
+/* 顶部硬币装饰 */
+.mario-coin-row {
+    display: flex; justify-content: center; gap: .5rem;
+    margin-bottom: .8rem;
+}
+.mario-coin {
+    width: 14px; height: 18px;
+    background: var(--m-yellow);
+    border: 2px solid var(--m-line);
+    box-shadow: inset -2px 0 0 var(--m-yellow-dark), inset 2px 0 0 #ffe89a;
+    animation: m-coin-spin 1.4s ease-in-out infinite;
+}
+.mario-coin:nth-child(2) { animation-delay: -.2s; }
+.mario-coin:nth-child(3) { animation-delay: -.4s; }
+.mario-coin:nth-child(4) { animation-delay: -.6s; }
+.mario-coin:nth-child(5) { animation-delay: -.8s; }
+@keyframes m-coin-spin {
+    0%, 100% { transform: scaleX(1); }
+    50%      { transform: scaleX(0.2); }
+}
+
+.mario-title {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: 1.05rem;
+    color: var(--m-red);
+    text-align: center;
+    text-shadow:
+        2px 2px 0 var(--m-line),
+        -2px 0 0 var(--m-line),
+        0 -2px 0 var(--m-line),
+        0 2px 0 var(--m-line),
+        2px 0 0 var(--m-line);
+    letter-spacing: .05em;
+    margin-bottom: .55rem;
+    word-break: keep-all;
+}
+.mario-subtitle {
+    text-align: center;
+    color: var(--m-text);
+    font-size: .68rem;
+    letter-spacing: .04em;
+    margin-bottom: 1.2rem;
+    opacity: .85;
+}
+
+/* ----- 表单 ----- */
+.mario-form .form-group { margin-bottom: 1rem; }
+.mario-form label {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: .68rem;
+    margin-bottom: .5rem;
+    color: var(--m-text);
+    letter-spacing: .03em;
+}
+.mario-form input[type="text"],
+.mario-form input[type="number"],
+.mario-form input[type="password"] {
+    width: 100%;
+    padding: .65rem .7rem;
+    border: 3px solid var(--m-line);
+    background: #fff;
+    color: var(--m-text);
+    font-family: "Courier New", monospace;
+    font-size: .95rem;
+    font-weight: 700;
+    box-shadow: inset 2px 2px 0 rgba(0,0,0,0.12);
+}
+.mario-form input:focus {
+    outline: none;
+    background: #fffce8;
+    box-shadow: inset 2px 2px 0 rgba(0,0,0,0.12), 0 0 0 3px var(--m-yellow);
+}
+.mario-form input::placeholder {
+    color: rgba(26,14,4,0.4);
+    font-family: "Courier New", monospace;
+}
+
+.captcha-row {
+    display: flex;
+    gap: .5rem;
+    align-items: stretch;
+}
+.captcha-row input { flex: 1 1 auto; }
+.captcha-row img {
+    height: 48px;
+    width: auto;
+    border: 3px solid var(--m-line);
+    background: #fff;
+    cursor: pointer;
+    image-rendering: pixelated;
+}
+.captcha-row img:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--m-line); }
+
+.form-hint {
+    font-family: "Courier New", monospace;
+    font-size: .76rem;
+    color: var(--m-text);
+    opacity: .7;
+    margin-top: .4rem;
+    letter-spacing: .02em;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: .15rem .45rem;
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: .55rem;
+    border: 2px solid var(--m-line);
+    background: var(--m-yellow);
+    color: var(--m-line);
+}
+.tag-success { background: var(--m-green); color: #fff; }
+
+/* ----- 按钮：像素硬阴影 ----- */
+.mario-btn {
+    display: block;
+    width: 100%;
+    padding: .85rem 1rem;
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: .8rem;
+    color: #fff;
+    background: var(--m-red);
+    border: 3px solid var(--m-line);
+    cursor: pointer;
+    letter-spacing: .04em;
+    text-shadow: 1px 1px 0 var(--m-line);
+    box-shadow:
+        4px 4px 0 var(--m-line),
+        inset -3px -3px 0 var(--m-red-dark),
+        inset 3px 3px 0 rgba(255,255,255,0.25);
+    transition: transform .08s linear, box-shadow .08s linear;
+}
+.mario-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow:
+        5px 5px 0 var(--m-line),
+        inset -3px -3px 0 var(--m-red-dark),
+        inset 3px 3px 0 rgba(255,255,255,0.25);
+}
+.mario-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow:
+        2px 2px 0 var(--m-line),
+        inset -3px -3px 0 var(--m-red-dark),
+        inset 3px 3px 0 rgba(255,255,255,0.25);
+}
+.mario-btn-primary { background: var(--m-red); }
+.mario-btn-primary:hover { box-shadow: 5px 5px 0 var(--m-line), inset -3px -3px 0 var(--m-red-dark), inset 3px 3px 0 rgba(255,255,255,0.25); }
+.mario-btn-coin {
+    background: var(--m-yellow);
+    color: var(--m-line);
+    text-shadow: 1px 1px 0 #fff;
+    box-shadow:
+        4px 4px 0 var(--m-line),
+        inset -3px -3px 0 var(--m-yellow-dark),
+        inset 3px 3px 0 #ffe89a;
+}
+.mario-btn-pipe {
+    background: var(--m-green);
+    box-shadow:
+        4px 4px 0 var(--m-line),
+        inset -3px -3px 0 var(--m-green-dark),
+        inset 3px 3px 0 rgba(255,255,255,0.25);
+}
+.mario-btn-ghost {
+    background: #fff;
+    color: var(--m-line);
+    text-shadow: none;
+    box-shadow:
+        4px 4px 0 var(--m-line),
+        inset -3px -3px 0 rgba(0,0,0,0.08),
+        inset 3px 3px 0 rgba(255,255,255,0.6);
+}
+.mario-btn.is-copied {
+    background: var(--m-green);
+    color: #fff;
+}
+.mario-btn.is-loading {
+    opacity: .7;
+    pointer-events: none;
+}
+.mario-btn.is-loading::after {
+    content: " ...";
+}
+
+/* ----- 数量加减器 ----- */
+.mario-stepper {
+    display: flex;
+    align-items: stretch;
+    gap: .4rem;
+}
+.mario-stepper button {
+    width: 48px;
+    flex-shrink: 0;
+    border: 3px solid var(--m-line);
+    background: var(--m-yellow);
+    color: var(--m-line);
+    font-family: "Press Start 2P", monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-shadow: 1px 1px 0 #fff;
+    box-shadow:
+        3px 3px 0 var(--m-line),
+        inset -2px -2px 0 var(--m-yellow-dark),
+        inset 2px 2px 0 #ffe89a;
+}
+.mario-stepper button:active {
+    transform: translate(1px, 1px);
+    box-shadow:
+        2px 2px 0 var(--m-line),
+        inset -2px -2px 0 var(--m-yellow-dark),
+        inset 2px 2px 0 #ffe89a;
+}
+.mario-stepper input {
+    text-align: center;
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: .95rem;
+}
+
+/* ----- 警告与结果 ----- */
+.mario-alert {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .65rem .75rem;
+    margin-bottom: 1rem;
+    background: var(--m-red);
+    border: 3px solid var(--m-line);
+    color: #fff;
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: .65rem;
+    letter-spacing: .03em;
+    text-shadow: 1px 1px 0 var(--m-line);
+    box-shadow: 3px 3px 0 var(--m-line);
+}
+.mario-alert .alert-icon {
+    width: 22px; height: 22px;
+    background: #fff;
+    color: var(--m-red);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    flex-shrink: 0;
+    border: 2px solid var(--m-line);
+}
+
+.mario-note {
+    background: #fff;
+    border: 2px dashed var(--m-line);
+    padding: .65rem .8rem;
+    font-family: "Courier New", monospace;
+    font-size: .82rem;
+    color: var(--m-text);
+    margin-top: .8rem;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.mario-result {
+    background: #fff;
+    border: 3px solid var(--m-line);
+    padding: .9rem;
+    box-shadow:
+        4px 4px 0 var(--m-line),
+        inset -3px -3px 0 rgba(0,0,0,0.06),
+        inset 3px 3px 0 rgba(255,255,255,0.6);
+    margin-bottom: .8rem;
+}
+.mario-result .result-header {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: .72rem;
+    color: var(--m-green-dark);
+    margin-bottom: .7rem;
+    letter-spacing: .03em;
+}
+.mario-result .result-emoji {
+    display: inline-block;
+    font-size: 1rem;
+    animation: m-star-spin 1.6s ease-in-out infinite;
+}
+@keyframes m-star-spin {
+    0%, 100% { transform: rotate(-8deg) scale(1); }
+    50%      { transform: rotate(8deg) scale(1.15); }
+}
+.mario-result-body {
+    background: var(--m-cream);
+    border: 2px solid var(--m-line);
+    padding: .75rem;
+    font-family: "Courier New", "SF Mono", monospace;
+    font-size: .82rem;
+    color: var(--m-text);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 240px;
+    overflow-y: auto;
+    margin-bottom: .8rem;
+    line-height: 1.55;
+}
+
+/* ----- 响应式 ----- */
+@media (max-width: 480px) {
+    .mario-stage { padding-top: 3rem; padding-bottom: 16vh; }
+    .mario-card { padding: 1.2rem 1rem 1.1rem; }
+    .mario-title { font-size: .9rem; }
+    .mario-subtitle { font-size: .6rem; }
+    .m-block-1 { top: 16%; left: 4%; transform: scale(.75); }
+    .m-block-2 { top: 14%; right: 4%; transform: scale(.75); }
+    .m-hill { width: 140px; height: 60px; }
+    .mario-form input,
+    .mario-stepper input { font-size: 16px; }
+    .mario-btn { font-size: .72rem; }
+}

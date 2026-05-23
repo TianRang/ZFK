@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_name }}</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    {% set _site = request.state.site if request.state.site is defined else {} %}
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card front-card">
+            <div class="front-icon-wrap" aria-hidden="true">
+                {% if content %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                {% elif points_step %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="6" width="18" height="13" rx="2"></rect>
+                    <path d="M3 10h18"></path>
+                    <path d="M8 15h3"></path>
+                </svg>
+                {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="6" width="18" height="13" rx="2"></rect>
+                    <path d="M3 10h18"></path>
+                    <circle cx="8" cy="15" r="1.2" fill="currentColor"></circle>
+                    <path d="M12 15h5"></path>
+                </svg>
+                {% endif %}
+            </div>
+
+            <h1>{{ site_name }}</h1>
+            <h2>{{ site_subtitle }}</h2>
+
+            {% if error %}
+            <div class="alert alert-error">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            {% if points_step %}
+            <form action="/" method="post" id="amountForm">
+                <input type="hidden" name="key" value="{{ key }}">
+                <input type="hidden" name="step" value="2">
+                <div class="form-group">
+                    <label for="amount">
+                        提取数量
+                        <span class="field-tip">剩余 <strong style="color:var(--success);margin-left:.2em">{{ remaining }}</strong></span>
+                    </label>
+                    <div class="stepper" data-min="1" data-max="{{ remaining }}">
+                        <button type="button" data-step="-1" aria-label="减少">−</button>
+                        <input type="number" id="amount" name="amount" min="1" max="{{ remaining }}" value="1" required autofocus>
+                        <button type="button" data-step="1" aria-label="增加">+</button>
+                    </div>
+                    <p class="form-hint">每次提取最多 {{ remaining }} 条</p>
+                </div>
+                {% if card_description %}<div class="card-desc">{{ card_description }}</div>{% endif %}
+                <button type="submit" class="btn btn-primary btn-block" data-loading style="margin-top:.85rem">确认提取</button>
+            </form>
+            <form action="/" method="get" style="margin-top:.6rem">
+                <button type="submit" class="btn btn-block">← 返回</button>
+            </form>
+
+            {% elif content %}
+            <div class="result">
+                <div class="result-header">
+                    <span class="result-dot"></span>
+                    <span>{{ extract_info or '提取成功' }}</span>
+                </div>
+                {% if card_description %}<div class="card-desc">{{ card_description }}</div>{% endif %}
+                <pre class="result-body" id="result-text">{{ content }}</pre>
+                <button id="copyBtn" onclick="doCopy()" class="btn btn-block result-btn">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/></svg>
+                    复制内容
+                </button>
+            </div>
+            <form action="/" method="get" style="margin-top:.6rem">
+                <button type="submit" class="btn btn-block">再次提取</button>
+            </form>
+
+            {% else %}
+            <form action="/" method="post" id="extractForm">
+                <input type="hidden" name="step" value="1">
+                <div class="form-group">
+                    <label for="key">卡密</label>
+                    <input type="text" id="key" name="key" placeholder="请输入您的卡密" value="{{ key or '' }}" required autofocus autocomplete="off" spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label for="captcha">验证码</label>
+                    <div class="captcha-row">
+                        <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required maxlength="4" autocomplete="off">
+                        <img id="captchaImg" src="{{ captcha_img }}" alt="验证码" onclick="refreshCaptcha()" title="点击刷新">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" data-loading>
+                    <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd" transform="rotate(180 10 10)"/></svg>
+                    提取
+                </button>
+            </form>
+
+            {% if card_description %}<div class="card-desc">{{ card_description }}</div>{% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+    function refreshCaptcha() { location.reload(); }
+
+    function doCopy() {
+        var text = document.getElementById('result-text');
+        var btn  = document.getElementById('copyBtn');
+        if (!text || !btn) return;
+        navigator.clipboard.writeText(text.innerText).then(function() {
+            var html = btn.innerHTML;
+            btn.innerHTML = '<svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> 已复制';
+            btn.style.background = 'rgba(52,211,153,.18)';
+            btn.style.borderColor = 'rgba(52,211,153,.4)';
+            btn.style.color = 'var(--success)';
+            btn.style.boxShadow = 'none';
+            setTimeout(function() {
+                btn.innerHTML = html;
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+                btn.style.boxShadow = '';
+            }, 1800);
+        });
+    }
+
+    /* Stepper for points amount */
+    (function() {
+        var stepper = document.querySelector('.stepper');
+        if (!stepper) return;
+        var input = stepper.querySelector('input[type="number"]');
+        var min = parseInt(stepper.dataset.min || '1', 10);
+        var max = parseInt(stepper.dataset.max || '999', 10);
+        stepper.querySelectorAll('button').forEach(function(b) {
+            b.addEventListener('click', function() {
+                var v = parseInt(input.value || '0', 10) || 0;
+                v += parseInt(b.dataset.step, 10);
+                if (v < min) v = min;
+                if (v > max) v = max;
+                input.value = v;
+            });
+        });
+        input.addEventListener('blur', function() {
+            var v = parseInt(input.value || '0', 10) || min;
+            if (v < min) v = min;
+            if (v > max) v = max;
+            input.value = v;
+        });
+    })();
+
+    /* Loading state on submit */
+    document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function() {
+            var btn = form.querySelector('button[data-loading]');
+            if (btn) btn.classList.add('is-loading');
+        });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+{% extends "admin/base.html" %}
+{% block title %}卡密列表 - 管理后台{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1><span class="h1-dot"></span>卡密列表</h1>
+        <p class="page-subtitle">共 <strong style="color:var(--text)">{{ total }}</strong> 张卡密。点击卡密旁边的按钮即可复制。</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ admin_prefix }}/cards/add" class="btn btn-primary">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+            添加卡密
+        </a>
+        <a href="{{ admin_prefix }}/cards/batch" class="btn">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+            批量添加
+        </a>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="搜索卡密或内容…" class="filter-input">
+    <div class="filter-tabs" id="filterTabs">
+        <button class="filter-tab active" data-type="all">全部 <span class="filter-count">{{ cards|length }}</span></button>
+        <button class="filter-tab" data-type="normal">通用</button>
+        <button class="filter-tab" data-type="points">点数</button>
+        <button class="filter-tab" data-type="shared_stock">共享库存</button>
+    </div>
+</div>
+
+<div class="table-wrapper">
+<table class="table" id="cardsTable">
+    <thead>
+        <tr>
+            <th style="width:60px">ID</th>
+            <th>卡密</th>
+            <th style="width:90px">类型</th>
+            <th>内容 / 额度</th>
+            <th style="width:140px">创建时间</th>
+            <th style="width:90px">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for card in cards %}
+        <tr data-type="{{ card.card_type }}" data-key="{{ card.key|lower }}" data-content="{{ card.content[:60]|lower if card.content else '' }}">
+            <td style="color:var(--text-muted);font-size:.75rem">{{ card.id }}</td>
+            <td>
+                <div style="display:flex;align-items:center;gap:.45rem">
+                    <code id="key-{{ card.id }}">{{ card.key }}</code>
+                    <button class="copy-btn" data-copy="{{ card.key }}" title="复制卡密" type="button">
+                        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/></svg>
+                    </button>
+                </div>
+            </td>
+            <td>
+                {% if card.card_type == 'points' %}<span class="badge badge-primary">点数</span>
+                {% elif card.card_type == 'shared_stock' %}<span class="badge badge-accent">共享库存</span>
+                {% else %}<span class="badge">通用</span>{% endif %}
+            </td>
+            <td class="content-cell">
+                {% if card.card_type == 'points' %}
+                    {% set pct = ((card.used_points / card.total_points) * 100)|int if card.total_points else 0 %}
+                    <div class="usage-bar-wrap">
+                        <div class="usage-bar {% if pct >= 80 %}usage-bar-warning{% endif %}" style="width:{{ pct }}%"></div>
+                    </div>
+                    <span style="font-size:.75rem;color:var(--text-muted)" class="tabnums">{{ card.used_points }}/{{ card.total_points }} 已用</span>
+                {% elif card.card_type == 'shared_stock' %}
+                    {% set pct = ((card.used_points / card.total_points) * 100)|int if card.total_points else 0 %}
+                    <div style="display:flex;align-items:center;gap:.5rem">
+                        <span style="color:var(--accent)">{{ product_map.get(card.product_id, '?') }}</span>
+                        <span style="font-size:.75rem;color:var(--text-muted)" class="tabnums">{{ card.used_points }}/{{ card.total_points }}</span>
+                    </div>
+                    <div class="usage-bar-wrap" style="margin-top:.3rem">
+                        <div class="usage-bar {% if pct >= 80 %}usage-bar-warning{% endif %}" style="width:{{ pct }}%"></div>
+                    </div>
+                {% else %}
+                    <span title="{{ card.content }}">{{ card.content[:50] }}{% if card.content|length > 50 %}…{% endif %}</span>
+                {% endif %}
+            </td>
+            <td style="font-size:.75rem;color:var(--text-muted)">{{ card.created_at.strftime('%Y-%m-%d %H:%M') if card.created_at else '—' }}</td>
+            <td>
+                <form action="{{ admin_prefix }}/cards/{{ card.id }}/delete" method="post" data-confirm-delete="卡密 {{ card.key }}">
+                    <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty-cell">
+            <svg class="empty-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd"/></svg>
+            <div>暂无卡密</div>
+            <div style="margin-top:.5rem"><a href="{{ admin_prefix }}/cards/add">立即添加 →</a></div>
+        </td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<div class="card-list" id="cardListMobile">
+    {% for card in cards %}
+    <div class="card-item" data-type="{{ card.card_type }}" data-key="{{ card.key|lower }}" data-content="{{ card.content[:60]|lower if card.content else '' }}">
+        <div class="card-item-row">
+            <span class="card-item-label">卡密</span>
+            <span class="card-item-value" style="display:flex;align-items:center;gap:.3rem;justify-content:flex-end">
+                <code>{{ card.key }}</code>
+                <button class="copy-btn" data-copy="{{ card.key }}" title="复制" type="button">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/></svg>
+                </button>
+            </span>
+        </div>
+        <div class="card-item-row">
+            <span class="card-item-label">类型</span>
+            <span class="card-item-value">
+                {% if card.card_type == 'points' %}<span class="badge badge-primary">点数</span>
+                {% elif card.card_type == 'shared_stock' %}<span class="badge badge-accent">共享库存</span>
+                {% else %}<span class="badge">通用</span>{% endif %}
+            </span>
+        </div>
+        <div class="card-item-row">
+            <span class="card-item-label">{% if card.card_type == 'points' %}额度{% elif card.card_type == 'shared_stock' %}商品/额度{% else %}内容{% endif %}</span>
+            <span class="card-item-value">
+                {% if card.card_type == 'points' %}<span class="tabnums">{{ card.used_points }}/{{ card.total_points }}</span>
+                {% elif card.card_type == 'shared_stock' %}{{ product_map.get(card.product_id, '?') }} | <span class="tabnums">{{ card.used_points }}/{{ card.total_points }}</span>
+                {% else %}{{ card.content[:30] }}{% if card.content|length > 30 %}…{% endif %}{% endif %}
+            </span>
+        </div>
+        <div class="card-item-actions">
+            <form action="{{ admin_prefix }}/cards/{{ card.id }}/delete" method="post" data-confirm-delete style="flex:1">
+                <button type="submit" class="btn btn-sm btn-danger" style="width:100%">删除</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% if page > 1 %}<a href="{{ admin_prefix }}/cards?page={{ page - 1 }}" class="btn btn-sm">← 上一页</a>{% endif %}
+    <span class="tabnums">第 {{ page }} / {{ total_pages }} 页 · 共 {{ total }} 条</span>
+    {% if page < total_pages %}<a href="{{ admin_prefix }}/cards?page={{ page + 1 }}" class="btn btn-sm">下一页 →</a>{% endif %}
+</div>
+{% endif %}
+
+<script>
+(function() {
+    var activeFilter = 'all';
+    var searchInput = document.getElementById('searchInput');
+    var filterTabs = document.getElementById('filterTabs');
+
+    function filterCards() {
+        var q = (searchInput.value || '').toLowerCase();
+        var rows = document.querySelectorAll('#cardsTable tbody tr[data-type]');
+        var mobileItems = document.querySelectorAll('#cardListMobile .card-item[data-type]');
+        var show = function(el) {
+            var type = el.dataset.type;
+            var key  = el.dataset.key || '';
+            var cont = el.dataset.content || '';
+            var typeOk = activeFilter === 'all' || type === activeFilter;
+            var searchOk = !q || key.indexOf(q) !== -1 || cont.indexOf(q) !== -1;
+            el.style.display = (typeOk && searchOk) ? '' : 'none';
+        };
+        rows.forEach(show);
+        mobileItems.forEach(show);
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterCards);
+
+    if (filterTabs) {
+        filterTabs.addEventListener('click', function(e) {
+            var btn = e.target.closest('.filter-tab');
+            if (!btn) return;
+            activeFilter = btn.dataset.type || 'all';
+            filterTabs.querySelectorAll('.filter-tab').forEach(function(t){ t.classList.remove('active'); });
+            btn.classList.add('active');
+            filterCards();
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-copy]');
+        if (!btn) return;
+        e.preventDefault();
+        var text = btn.getAttribute('data-copy') || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                btn.classList.add('copied');
+                setTimeout(function(){ btn.classList.remove('copied'); }, 1500);
+            });
+        }
+    });
+
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        if (!form || !form.hasAttribute('data-confirm-delete')) return;
+        var label = form.getAttribute('data-confirm-delete');
+        var msg = label ? '确定删除' + label + '？' : '确定删除？';
+        if (!confirm(msg)) e.preventDefault();
+    });
+})();
+</script>
+{% endblock %}

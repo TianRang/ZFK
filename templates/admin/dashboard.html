@@ -1,0 +1,135 @@
+{% extends "admin/base.html" %}
+{% block title %}仪表盘 - 管理后台{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1><span class="h1-dot"></span>仪表盘</h1>
+        <p class="page-subtitle">欢迎回来，<strong style="color:var(--text)">{{ user }}</strong>。系统运行正常。</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ admin_prefix }}/cards/add" class="btn btn-primary">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+            添加卡密
+        </a>
+        <a href="{{ admin_prefix }}/cards/batch" class="btn">批量导入</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <svg class="stat-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd"/></svg>
+        <div class="stat-value tabnums">{{ total_cards }}</div>
+        <div class="stat-label">总卡密数</div>
+    </div>
+    <div class="stat-card stat-success">
+        <svg class="stat-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        <div class="stat-value tabnums">{{ avail_cards }}</div>
+        <div class="stat-label">可用卡密</div>
+    </div>
+    <div class="stat-card stat-warning">
+        <svg class="stat-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd"/></svg>
+        <div class="stat-value tabnums">{{ used_cards }}</div>
+        <div class="stat-label">已使用 / 已用完</div>
+    </div>
+    <div class="stat-card stat-accent">
+        <svg class="stat-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" clip-rule="evenodd"/></svg>
+        <div class="stat-value tabnums">{{ total_products }}</div>
+        <div class="stat-label">商品总数</div>
+    </div>
+</div>
+
+<div style="display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+
+    <div class="detail-card">
+        <h3>
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/></svg>
+            快捷操作
+        </h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem">
+            <a href="{{ admin_prefix }}/cards" class="btn">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd"/></svg>
+                卡密列表
+            </a>
+            <a href="{{ admin_prefix }}/cards/add" class="btn">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+                添加卡密
+            </a>
+            <a href="{{ admin_prefix }}/cards/batch" class="btn">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+                批量导入
+            </a>
+            <a href="{{ admin_prefix }}/products" class="btn">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/><path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" clip-rule="evenodd"/></svg>
+                商品管理
+            </a>
+            <a href="{{ admin_prefix }}/settings" class="btn" style="grid-column:span 2">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+                系统设置
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-card">
+        <h3>
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 10a8 8 0 1116 0 8 8 0 01-16 0zm7.293-2.707a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 11.414V14a1 1 0 11-2 0v-2.586l-1.293 1.293a1 1 0 11-1.414-1.414l3-3z"/></svg>
+            使用率
+        </h3>
+        {% set usage_pct = ((used_cards / total_cards) * 100) | round(1) if total_cards else 0 %}
+        <div style="margin-bottom:.85rem">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.45rem">
+                <span style="font-size:.78rem;color:var(--text-secondary)">卡密使用率</span>
+                <span class="tabnums" style="font-size:.95rem;font-weight:600">{{ usage_pct }}%</span>
+            </div>
+            <div class="usage-bar-wrap" style="height:8px">
+                <div class="usage-bar {% if usage_pct >= 80 %}usage-bar-warning{% elif usage_pct >= 50 %}{% else %}usage-bar-green{% endif %}" style="width:{{ usage_pct }}%"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:.4rem;font-size:.72rem;color:var(--text-muted)">
+                <span>已用 {{ used_cards }}</span>
+                <span>剩余 {{ avail_cards }}</span>
+            </div>
+        </div>
+
+        {% if total_cards == 0 %}
+        <div class="form-note" style="margin:0">
+            尚未创建任何卡密，<a href="{{ admin_prefix }}/cards/add" style="color:var(--primary);text-decoration:none">立即添加</a> 开始使用系统。
+        </div>
+        {% elif avail_cards == 0 %}
+        <div class="form-note" style="margin:0;background:rgba(251,146,60,.08);border-left-color:var(--warning);color:var(--warning)">
+            所有卡密都已使用，<a href="{{ admin_prefix }}/cards/batch" style="color:inherit;text-decoration:underline">批量补充</a>
+        </div>
+        {% else %}
+        <div class="form-note" style="margin:0">
+            系统运行良好，还有 <strong style="color:var(--success)">{{ avail_cards }}</strong> 张可用卡密。
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="detail-card">
+        <h3>
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+            关于
+        </h3>
+        <div style="font-size:.82rem;color:var(--text-secondary);line-height:1.75">
+            <div style="display:flex;justify-content:space-between;padding:.25rem 0">
+                <span>站点名称</span>
+                <strong style="color:var(--text)">{{ request.state.site.site_name if request.state.site and request.state.site.site_name else '卡密提取' }}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:.25rem 0">
+                <span>登录账号</span>
+                <strong style="color:var(--text)">{{ user }}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:.25rem 0">
+                <span>后台路径</span>
+                <code>{{ admin_prefix }}</code>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:.25rem 0">
+                <span>前台地址</span>
+                <a href="/" target="_blank" style="color:var(--primary);text-decoration:none">访问首页 →</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,388 @@
+/* ZFK · 卡通前台模板样式
+   设计目标：圆润手绘风、糖果配色、轻量动画 */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --c-pink: #ff8aa1;
+    --c-pink-soft: #ffd5dd;
+    --c-orange: #ffb454;
+    --c-orange-soft: #ffe1bf;
+    --c-blue: #6cc4ff;
+    --c-blue-soft: #d6ecff;
+    --c-yellow: #ffe066;
+    --c-cream: #fff8ee;
+    --c-text: #3b2a20;
+    --c-text-soft: #6e574a;
+    --c-line: #3b2a20;
+    --shadow-soft: 0 6px 0 rgba(59,42,32,0.08);
+    --shadow-pop: 0 6px 0 var(--c-line);
+}
+
+html, body { height: 100%; }
+
+body.cartoon-body {
+    font-family: "Comic Sans MS", "Hiragino Maru Gothic ProN", "M PLUS Rounded 1c",
+        "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    color: var(--c-text);
+    background:
+        radial-gradient(circle at 20% 20%, var(--c-pink-soft) 0%, transparent 50%),
+        radial-gradient(circle at 80% 30%, var(--c-blue-soft) 0%, transparent 55%),
+        radial-gradient(circle at 50% 90%, var(--c-orange-soft) 0%, transparent 50%),
+        var(--c-cream);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* ----- 背景装饰 ----- */
+.bg-deco { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.cloud {
+    position: absolute;
+    background: rgba(255,255,255,0.85);
+    border-radius: 999px;
+    filter: drop-shadow(0 4px 8px rgba(59,42,32,0.05));
+    animation: cloud-drift 18s ease-in-out infinite;
+}
+.cloud::before, .cloud::after {
+    content: "";
+    position: absolute;
+    background: inherit;
+    border-radius: 50%;
+}
+.cloud-1 { width: 120px; height: 36px; top: 12%; left: 6%; animation-delay: 0s; }
+.cloud-1::before { width: 50px; height: 50px; top: -22px; left: 16px; }
+.cloud-1::after  { width: 36px; height: 36px; top: -14px; right: 18px; }
+
+.cloud-2 { width: 90px; height: 28px; top: 22%; right: 8%; animation-delay: -6s; opacity: .85; }
+.cloud-2::before { width: 38px; height: 38px; top: -18px; left: 12px; }
+.cloud-2::after  { width: 28px; height: 28px; top: -12px; right: 14px; }
+
+.cloud-3 { width: 110px; height: 32px; bottom: 14%; left: 12%; animation-delay: -10s; opacity: .9; }
+.cloud-3::before { width: 44px; height: 44px; top: -20px; left: 18px; }
+.cloud-3::after  { width: 32px; height: 32px; top: -14px; right: 16px; }
+
+@keyframes cloud-drift {
+    0%, 100% { transform: translateX(0); }
+    50%      { transform: translateX(20px); }
+}
+
+.star, .heart {
+    position: absolute;
+    color: var(--c-pink);
+    text-shadow: 0 2px 0 rgba(59,42,32,0.08);
+    animation: float-bob 3s ease-in-out infinite;
+    user-select: none;
+}
+.star-1 { top: 30%; left: 20%; font-size: 22px; color: var(--c-yellow); animation-delay: 0s; }
+.star-2 { top: 65%; right: 18%; font-size: 28px; color: var(--c-orange); animation-delay: -1.5s; }
+.heart-1 { top: 18%; right: 28%; font-size: 18px; animation-delay: -.7s; }
+.heart-2 { bottom: 22%; right: 14%; font-size: 22px; animation-delay: -2.2s; }
+@keyframes float-bob {
+    0%,100% { transform: translateY(0) rotate(-4deg); }
+    50%     { transform: translateY(-10px) rotate(4deg); }
+}
+
+/* ----- 主容器 ----- */
+.cartoon-stage {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 1.25rem 3rem;
+}
+
+/* ----- 吉祥物 ----- */
+.mascot {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 130px;
+    z-index: 2;
+    animation: mascot-bob 2.6s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes mascot-bob {
+    0%,100% { transform: translateX(-50%) translateY(0) rotate(-2deg); }
+    50%     { transform: translateX(-50%) translateY(-6px) rotate(2deg); }
+}
+.mascot-svg { width: 100%; height: 100%; filter: drop-shadow(0 6px 0 rgba(59,42,32,0.15)); }
+.mascot-shadow {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 70px; height: 10px;
+    background: rgba(59,42,32,0.18);
+    border-radius: 50%;
+    filter: blur(3px);
+    animation: shadow-pulse 2.6s ease-in-out infinite;
+}
+@keyframes shadow-pulse {
+    0%,100% { transform: translateX(-50%) scale(1); opacity: .6; }
+    50%     { transform: translateX(-50%) scale(.8); opacity: .35; }
+}
+
+/* ----- 卡片 ----- */
+.cartoon-card {
+    position: relative;
+    width: min(440px, 100%);
+    background: #fff;
+    border: 3px solid var(--c-line);
+    border-radius: 28px;
+    padding: 5rem 1.6rem 1.8rem;
+    box-shadow: 0 8px 0 var(--c-line);
+    z-index: 1;
+}
+.cartoon-card::before {
+    content: "";
+    position: absolute;
+    top: 14px; left: 14px; right: 14px; bottom: 14px;
+    border: 2px dashed rgba(59,42,32,0.15);
+    border-radius: 20px;
+    pointer-events: none;
+}
+.cartoon-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-align: center;
+    color: var(--c-pink);
+    text-shadow: 2px 2px 0 var(--c-line);
+    letter-spacing: .04em;
+    margin-bottom: .25rem;
+}
+.cartoon-subtitle {
+    text-align: center;
+    color: var(--c-text-soft);
+    font-size: .92rem;
+    margin-bottom: 1.4rem;
+}
+
+/* ----- 表单 ----- */
+.cartoon-form .form-group { margin-bottom: 1.1rem; }
+.cartoon-form label {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 700;
+    font-size: .92rem;
+    margin-bottom: .5rem;
+    color: var(--c-text);
+}
+.cartoon-form input[type="text"],
+.cartoon-form input[type="number"],
+.cartoon-form input[type="password"] {
+    width: 100%;
+    padding: .75rem 1rem;
+    border: 2.5px solid var(--c-line);
+    border-radius: 14px;
+    background: var(--c-cream);
+    color: var(--c-text);
+    font-size: .98rem;
+    font-family: inherit;
+    transition: transform .15s ease, box-shadow .15s ease;
+    box-shadow: 0 3px 0 rgba(59,42,32,0.18);
+}
+.cartoon-form input:focus {
+    outline: none;
+    background: #fff;
+    box-shadow: 0 5px 0 var(--c-pink);
+    transform: translateY(-1px);
+}
+.cartoon-form input::placeholder { color: rgba(110,87,74,0.55); }
+
+.captcha-row {
+    display: flex;
+    gap: .55rem;
+    align-items: stretch;
+}
+.captcha-row input { flex: 1 1 auto; }
+.captcha-row img {
+    height: 50px;
+    width: auto;
+    border: 2.5px solid var(--c-line);
+    border-radius: 14px;
+    cursor: pointer;
+    background: #fff;
+    box-shadow: 0 3px 0 rgba(59,42,32,0.18);
+    transition: transform .15s ease;
+}
+.captcha-row img:hover { transform: rotate(-2deg) scale(1.03); }
+
+.form-hint {
+    font-size: .75rem;
+    color: var(--c-text-soft);
+    margin-top: .35rem;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: .15rem .55rem;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    border: 2px solid var(--c-line);
+}
+.tag-success { background: #b8e6c2; color: #1f5f30; }
+
+/* ----- 按钮 ----- */
+.cartoon-btn {
+    display: block;
+    width: 100%;
+    padding: .8rem 1.2rem;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--c-text);
+    background: var(--c-yellow);
+    border: 2.5px solid var(--c-line);
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 var(--c-line);
+    transition: transform .12s ease, box-shadow .12s ease;
+    letter-spacing: .03em;
+}
+.cartoon-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 var(--c-line);
+}
+.cartoon-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 3px 0 var(--c-line);
+}
+.cartoon-btn-primary {
+    background: var(--c-pink);
+    color: #fff;
+}
+.cartoon-btn-warm {
+    background: var(--c-orange);
+    color: #fff;
+}
+.cartoon-btn-ghost {
+    background: #fff;
+    color: var(--c-text);
+}
+.cartoon-btn.is-copied {
+    background: #b8e6c2;
+    color: #1f5f30;
+}
+.cartoon-btn.is-loading {
+    opacity: .7;
+    pointer-events: none;
+}
+.cartoon-btn.is-loading::after {
+    content: " …";
+}
+
+/* ----- 数量加减器 ----- */
+.cartoon-stepper {
+    display: flex;
+    align-items: stretch;
+    gap: .5rem;
+}
+.cartoon-stepper button {
+    width: 48px;
+    flex-shrink: 0;
+    border: 2.5px solid var(--c-line);
+    border-radius: 14px;
+    background: var(--c-blue);
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--c-line);
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+.cartoon-stepper button:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--c-line); }
+.cartoon-stepper button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--c-line); }
+.cartoon-stepper input { text-align: center; font-size: 1.05rem; font-weight: 700; }
+
+/* ----- 提示与结果 ----- */
+.cartoon-alert {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .7rem .9rem;
+    margin-bottom: 1rem;
+    background: #ffd5d5;
+    border: 2.5px solid #d94343;
+    border-radius: 14px;
+    color: #9b1c1c;
+    font-weight: 600;
+    font-size: .9rem;
+    box-shadow: 0 3px 0 #d94343;
+}
+.cartoon-alert .alert-icon {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #d94343;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.cartoon-note {
+    background: var(--c-blue-soft);
+    border: 2px dashed var(--c-blue);
+    border-radius: 12px;
+    padding: .7rem .9rem;
+    font-size: .85rem;
+    color: var(--c-text-soft);
+    margin-top: .9rem;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.cartoon-result {
+    background: var(--c-cream);
+    border: 2.5px solid var(--c-line);
+    border-radius: 18px;
+    padding: 1rem;
+    box-shadow: 0 4px 0 rgba(59,42,32,0.18);
+    margin-bottom: .6rem;
+}
+.cartoon-result .result-header {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 700;
+    color: #1f5f30;
+    margin-bottom: .7rem;
+}
+.cartoon-result .result-emoji { font-size: 1.3rem; animation: emoji-pop 1.4s ease-in-out infinite; }
+@keyframes emoji-pop {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.15) rotate(-5deg); }
+}
+.cartoon-result-body {
+    background: #fff;
+    border: 2px solid var(--c-line);
+    border-radius: 12px;
+    padding: .8rem;
+    font-family: "SF Mono", Consolas, "Liberation Mono", monospace;
+    font-size: .82rem;
+    color: var(--c-text);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 240px;
+    overflow-y: auto;
+    margin-bottom: .8rem;
+    line-height: 1.55;
+}
+
+/* ----- 响应式 ----- */
+@media (max-width: 480px) {
+    .cartoon-stage { padding-top: 4rem; }
+    .cartoon-card { padding: 4.5rem 1.2rem 1.4rem; }
+    .cartoon-title { font-size: 1.35rem; }
+    .mascot { width: 110px; height: 110px; top: -22px; }
+    .cloud-1, .cloud-2, .cloud-3 { transform: scale(.75); }
+    .cartoon-form input,
+    .cartoon-stepper input { font-size: 16px; }
+}

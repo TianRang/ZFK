@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_name }}</title>
+    <link rel="stylesheet" href="/static/css/mario.css">
+</head>
+<body class="mario-body">
+    <!-- 背景：云朵、山丘、灌木、? 砖块 -->
+    <div class="mario-bg" aria-hidden="true">
+        <div class="m-cloud m-cloud-1"></div>
+        <div class="m-cloud m-cloud-2"></div>
+        <div class="m-cloud m-cloud-3"></div>
+        <div class="m-hill m-hill-1"></div>
+        <div class="m-hill m-hill-2"></div>
+        <div class="m-bush m-bush-1"></div>
+        <div class="m-bush m-bush-2"></div>
+        <div class="m-block m-block-1">?</div>
+        <div class="m-block m-block-2">?</div>
+    </div>
+    <div class="m-ground" aria-hidden="true"></div>
+
+    <main class="mario-stage">
+        <section class="mario-card">
+            <div class="mario-coin-row" aria-hidden="true">
+                <span class="mario-coin"></span>
+                <span class="mario-coin"></span>
+                <span class="mario-coin"></span>
+                <span class="mario-coin"></span>
+                <span class="mario-coin"></span>
+            </div>
+            <h1 class="mario-title">{{ site_name }}</h1>
+            <p class="mario-subtitle">{{ site_subtitle }}</p>
+
+            {% if error %}
+            <div class="mario-alert">
+                <span class="alert-icon">!</span>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            {% if points_step %}
+            <form action="/" method="post" class="mario-form">
+                <input type="hidden" name="key" value="{{ key }}">
+                <input type="hidden" name="step" value="2">
+                <div class="form-group">
+                    <label for="amount">
+                        AMOUNT
+                        <span class="tag tag-success">x {{ remaining }}</span>
+                    </label>
+                    <div class="mario-stepper" data-min="1" data-max="{{ remaining }}">
+                        <button type="button" data-step="-1" aria-label="减少">-</button>
+                        <input type="number" id="amount" name="amount" min="1" max="{{ remaining }}" value="1" required autofocus>
+                        <button type="button" data-step="1" aria-label="增加">+</button>
+                    </div>
+                    <p class="form-hint">每次最多提取 {{ remaining }} 条</p>
+                </div>
+                {% if card_description %}<div class="mario-note">{{ card_description }}</div>{% endif %}
+                <button type="submit" class="mario-btn mario-btn-primary" data-loading>
+                    GO!
+                </button>
+            </form>
+            <form action="/" method="get" style="margin-top:.7rem">
+                <button type="submit" class="mario-btn mario-btn-ghost">&laquo; BACK</button>
+            </form>
+
+            {% elif content %}
+            <div class="mario-result">
+                <div class="result-header">
+                    <span class="result-emoji">★</span>
+                    <span>{{ extract_info or 'LEVEL CLEAR!' }}</span>
+                </div>
+                {% if card_description %}<div class="mario-note">{{ card_description }}</div>{% endif %}
+                <pre class="mario-result-body" id="result-text">{{ content }}</pre>
+                <button id="copyBtn" onclick="doCopy()" class="mario-btn mario-btn-coin">
+                    COPY
+                </button>
+            </div>
+            <form action="/" method="get" style="margin-top:.7rem">
+                <button type="submit" class="mario-btn mario-btn-pipe">1-2 NEXT</button>
+            </form>
+
+            {% else %}
+            <form action="/" method="post" class="mario-form">
+                <input type="hidden" name="step" value="1">
+                <div class="form-group">
+                    <label for="key">CARD KEY</label>
+                    <input type="text" id="key" name="key" placeholder="ENTER YOUR KEY" value="{{ key or '' }}" required autofocus autocomplete="off" spellcheck="false">
+                </div>
+                <div class="form-group">
+                    <label for="captcha">CAPTCHA</label>
+                    <div class="captcha-row">
+                        <input type="text" id="captcha" name="captcha" placeholder="4 DIGITS" required maxlength="4" autocomplete="off">
+                        <img id="captchaImg" src="{{ captcha_img }}" alt="验证码" onclick="refreshCaptcha()" title="点击刷新">
+                    </div>
+                </div>
+                <button type="submit" class="mario-btn mario-btn-primary" data-loading>
+                    START &raquo;
+                </button>
+            </form>
+
+            {% if card_description %}<div class="mario-note">{{ card_description }}</div>{% endif %}
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+    function refreshCaptcha() { location.reload(); }
+
+    function doCopy() {
+        var text = document.getElementById('result-text');
+        var btn  = document.getElementById('copyBtn');
+        if (!text || !btn) return;
+        navigator.clipboard.writeText(text.innerText).then(function() {
+            var html = btn.innerHTML;
+            btn.innerHTML = 'OK!';
+            btn.classList.add('is-copied');
+            setTimeout(function() {
+                btn.innerHTML = html;
+                btn.classList.remove('is-copied');
+            }, 1800);
+        });
+    }
+
+    (function() {
+        var stepper = document.querySelector('.mario-stepper');
+        if (!stepper) return;
+        var input = stepper.querySelector('input[type="number"]');
+        var min = parseInt(stepper.dataset.min || '1', 10);
+        var max = parseInt(stepper.dataset.max || '999', 10);
+        stepper.querySelectorAll('button').forEach(function(b) {
+            b.addEventListener('click', function() {
+                var v = parseInt(input.value || '0', 10) || 0;
+                v += parseInt(b.dataset.step, 10);
+                if (v < min) v = min;
+                if (v > max) v = max;
+                input.value = v;
+            });
+        });
+        input.addEventListener('blur', function() {
+            var v = parseInt(input.value || '0', 10) || min;
+            if (v < min) v = min;
+            if (v > max) v = max;
+            input.value = v;
+        });
+    })();
+
+    document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function() {
+            var btn = form.querySelector('button[data-loading]');
+            if (btn) btn.classList.add('is-loading');
+        });
+    });
+    </script>
+</body>
+</html>

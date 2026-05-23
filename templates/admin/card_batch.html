@@ -1,0 +1,108 @@
+{% extends "admin/base.html" %}
+{% block title %}批量添加 - 管理后台{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1><span class="h1-dot"></span>批量添加卡密</h1>
+        <p class="page-subtitle">每行一条，按格式批量导入卡密</p>
+    </div>
+    <a href="{{ admin_prefix }}/cards" class="btn btn-back">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+        返回列表
+    </a>
+</div>
+
+{% if error %}
+<div class="alert alert-error">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+    <span>{{ error }}</span>
+</div>
+{% endif %}
+{% if success %}
+<div class="alert alert-success">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+    <span>{{ success }}</span>
+</div>
+{% endif %}
+
+<div style="display:grid;gap:1.25rem;grid-template-columns:minmax(0,1fr) 280px">
+
+    <div class="detail-card" style="margin:0">
+        <h3>
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+            批量数据
+        </h3>
+        <form action="{{ admin_prefix }}/cards/batch" method="post" id="batchForm">
+            <div class="form-group">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+                    <label for="data" style="margin:0">输入数据</label>
+                    <span id="lineCount" style="font-size:.75rem;color:var(--text-muted)" class="tabnums">0 行</span>
+                </div>
+                <textarea id="data" name="data" rows="14" required placeholder="每行一条，格式见右侧说明" oninput="countLines(this)" style="font-family:'SF Mono',Consolas,monospace">{{ data or '' }}</textarea>
+            </div>
+            <div class="form-row">
+                <button type="submit" class="btn btn-primary" data-loading>
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                    开始导入
+                </button>
+                <button type="button" class="btn" onclick="document.getElementById('data').value='';countLines(document.getElementById('data'))">清空</button>
+                <button type="button" class="btn" onclick="loadExample()">填入示例</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="detail-card" style="margin:0">
+        <h3>
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+            格式说明
+        </h3>
+        <p style="font-size:.78rem;color:var(--text-secondary);margin-bottom:.85rem">每行一条，字段使用 <code>|</code> 分隔</p>
+
+        <div style="margin-bottom:.85rem">
+            <div style="font-size:.75rem;font-weight:600;color:var(--text);margin-bottom:.3rem">通用类型</div>
+            <code style="display:block;padding:.4rem .6rem;font-size:.72rem;word-break:break-all;line-height:1.5">卡密|内容</code>
+        </div>
+
+        <div style="margin-bottom:.85rem">
+            <div style="font-size:.75rem;font-weight:600;color:var(--text);margin-bottom:.3rem">点数类型</div>
+            <code style="display:block;padding:.4rem .6rem;font-size:.72rem;word-break:break-all;line-height:1.5">卡密|points|账号1;;账号2</code>
+        </div>
+
+        <div style="margin-bottom:.85rem">
+            <div style="font-size:.75rem;font-weight:600;color:var(--text);margin-bottom:.3rem">共享库存</div>
+            <code style="display:block;padding:.4rem .6rem;font-size:.72rem;word-break:break-all;line-height:1.5">卡密|shared_stock|商品名|额度</code>
+        </div>
+
+        <div class="form-note" style="margin:.5rem 0 0;font-size:.72rem">
+            重复的卡密会自动跳过，导入完成后会显示成功与跳过的数量
+        </div>
+    </div>
+
+</div>
+
+<script>
+function countLines(el) {
+    var lines = el.value.split('\n').filter(function(l){ return l.trim(); }).length;
+    document.getElementById('lineCount').textContent = lines + ' 行';
+}
+function loadExample() {
+    var ta = document.getElementById('data');
+    if (ta.value.trim() && !confirm('当前已有内容，是否替换为示例？')) return;
+    ta.value =
+        'CARD-001|这是一段通用卡密的内容\n' +
+        'CARD-002|points|account1@mail.com:pass1;;account2@mail.com:pass2\n' +
+        'CARD-003|shared_stock|商品名|10';
+    countLines(ta);
+}
+(function(){ countLines(document.getElementById('data')); })();
+document.getElementById('batchForm').addEventListener('submit', function() {
+    var btn = this.querySelector('[data-loading]');
+    if (btn) btn.classList.add('is-loading');
+});
+</script>
+<style>
+@media (max-width: 768px) {
+    .content > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+}
+</style>
+{% endblock %}

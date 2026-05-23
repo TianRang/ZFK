@@ -1,0 +1,72 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ '编辑商品' if editing else '添加商品' }} - 管理后台{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1><span class="h1-dot"></span>{{ '编辑商品' if editing else '添加商品' }}</h1>
+        <p class="page-subtitle">{% if editing %}修改商品信息或追加库存{% else %}创建商品，作为共享库存类型卡密的库存池{% endif %}</p>
+    </div>
+    <a href="{{ admin_prefix }}/products" class="btn btn-back">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+        返回列表
+    </a>
+</div>
+
+{% if error %}
+<div class="alert alert-error">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+    <span>{{ error }}</span>
+</div>
+{% endif %}
+
+<div class="detail-card">
+{% if editing %}
+<div style="display:flex;gap:.85rem;flex-wrap:wrap;margin-bottom:1.1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)">
+    <div style="flex:1;min-width:120px"><div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">总库存</div><div class="tabnums" style="font-size:1.5rem;font-weight:700;color:var(--primary)">{{ product.total_stock }}</div></div>
+    <div style="flex:1;min-width:120px"><div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">已使用</div><div class="tabnums" style="font-size:1.5rem;font-weight:700;color:var(--warning)">{{ product.used_stock }}</div></div>
+    <div style="flex:1;min-width:120px"><div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">剩余</div><div class="tabnums" style="font-size:1.5rem;font-weight:700;color:var(--success)">{{ product.total_stock - product.used_stock }}</div></div>
+</div>
+{% endif %}
+
+<form action="{{ admin_prefix }}/products/{{ product.id ~ '/edit' if editing else 'add' }}" method="post" class="form" id="prodForm">
+    <div class="form-group">
+        <label for="name">商品名称 <span class="req">*</span></label>
+        <input type="text" id="name" name="name" value="{{ name or '' }}" required placeholder="用于标识商品，如：Netflix账号" {% if not editing %}autofocus{% endif %}>
+        <p class="form-hint">名称需唯一，将在创建卡密时用于关联</p>
+    </div>
+    <div class="form-group">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+            <label for="stock" style="margin:0">库存内容</label>
+            <span id="stockCount" style="font-size:.75rem;color:var(--text-muted)" class="tabnums">0 条</span>
+        </div>
+        <textarea id="stock" name="stock" rows="12" placeholder="每行一条库存（如每行一个账号）" oninput="countStock(this)" style="font-family:'SF Mono',Consolas,monospace">{{ stock or '' }}</textarea>
+        <p class="form-hint">
+            {% if editing %}
+            <strong>提示：</strong>当前显示的是剩余可用库存，保存时会自动加上已使用的部分（{{ product.used_stock }} 条）作为新的总库存
+            {% else %}
+            每行一条，总行数即库存数量；可留空稍后再添加
+            {% endif %}
+        </p>
+    </div>
+    <div class="form-row">
+        <button type="submit" class="btn btn-primary" data-loading>
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            {{ '保存修改' if editing else '添加商品' }}
+        </button>
+        <a href="{{ admin_prefix }}/products" class="btn">取消</a>
+    </div>
+</form>
+</div>
+
+<script>
+function countStock(el) {
+    var n = el.value.split('\n').filter(function(l){ return l.trim(); }).length;
+    document.getElementById('stockCount').textContent = n + ' 条';
+}
+(function(){ countStock(document.getElementById('stock')); })();
+document.getElementById('prodForm').addEventListener('submit', function() {
+    var btn = this.querySelector('[data-loading]');
+    if (btn) btn.classList.add('is-loading');
+});
+</script>
+{% endblock %}
