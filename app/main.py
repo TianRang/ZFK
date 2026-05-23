@@ -9,8 +9,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.config import settings
 from app.database import engine, Base, async_session
 from app.deps import RequiresLogin
+from app.i18n import I18nMiddleware
 from app.models import User, CardKey, Product, SiteSettings, ApiKey
-from app.routers import auth, dashboard, cards, front, products, settings as settings_router, api as api_router, api_docs
+from app.routers import auth, dashboard, cards, front, products, settings as settings_router, api as api_router, api_docs, lang as lang_router
 from app.site_settings import get_settings
 from app.captcha import warmup as captcha_warmup
 
@@ -43,6 +44,7 @@ class SiteSettingsMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(SiteSettingsMiddleware)
+app.add_middleware(I18nMiddleware)
 
 
 @app.exception_handler(RequiresLogin)
@@ -54,6 +56,9 @@ app.mount("/static", StaticFiles(directory=os.path.join(_bundle_dir, "static")),
 
 # 前端公开页面
 app.include_router(front.router)
+
+# 语言切换（公开）
+app.include_router(lang_router.router)
 
 # 对外 API（通过 X-API-Key 校验）
 app.include_router(api_router.router)

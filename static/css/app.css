@@ -560,6 +560,20 @@ img { max-width: 100%; display: block; }
     line-height: 1.65; white-space: pre-wrap; word-break: break-all;
 }
 .result { margin-top: 1.25rem; animation: fade-in .35s ease; }
+.result-section { margin-top: 0.95rem; }
+.result-section:first-of-type { margin-top: 0; }
+.result-section .card-desc,
+.result-section .result-body { margin-top: 0; }
+.result-label {
+    display: inline-block;
+    font-size: 0.7rem; font-weight: 600;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.4rem;
+    padding: 0.15rem 0.55rem;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border-radius: 999px;
+}
 .result-header {
     display: flex; align-items: center; gap: 0.45rem;
     font-size: 0.85rem; font-weight: 500; color: var(--success);

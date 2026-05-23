@@ -76,21 +76,21 @@ async def add_submit(
         }
 
     if not key:
-        return templates.TemplateResponse("admin/card_form.html", form_ctx(error="卡密不能为空"))
+        return templates.TemplateResponse("admin/card_form.html", form_ctx(error=request.state.t("err.card_form.empty_key")))
 
     if card_type == "shared_stock":
         if not product_id:
-            return templates.TemplateResponse("admin/card_form.html", form_ctx(error="请选择关联商品"))
+            return templates.TemplateResponse("admin/card_form.html", form_ctx(error=request.state.t("err.card_form.choose_product")))
         if total_points < 1:
-            return templates.TemplateResponse("admin/card_form.html", form_ctx(error="额度必须大于0"))
+            return templates.TemplateResponse("admin/card_form.html", form_ctx(error=request.state.t("err.card_form.quota_positive")))
     elif card_type == "normal" and not content:
-        return templates.TemplateResponse("admin/card_form.html", form_ctx(error="内容不能为空"))
+        return templates.TemplateResponse("admin/card_form.html", form_ctx(error=request.state.t("err.card_form.empty_content")))
     elif card_type == "points" and not content:
-        return templates.TemplateResponse("admin/card_form.html", form_ctx(error="内容不能为空"))
+        return templates.TemplateResponse("admin/card_form.html", form_ctx(error=request.state.t("err.card_form.empty_content")))
 
     existing = await db.execute(select(CardKey).where(CardKey.key == key))
     if existing.scalar_one_or_none():
-        return templates.TemplateResponse("admin/card_form.html", form_ctx(error="该卡密已存在"))
+        return templates.TemplateResponse("admin/card_form.html", form_ctx(error=request.state.t("err.card_form.duplicate")))
 
     if card_type == "points":
         lines = [l for l in content.split("\n") if l.strip()]
@@ -122,7 +122,7 @@ async def batch_submit(
     lines = [l.strip() for l in data.strip().splitlines() if l.strip()]
     if not lines:
         return templates.TemplateResponse("admin/card_batch.html", {
-            "request": request, "user": user.username, "error": "内容为空",
+            "request": request, "user": user.username, "error": request.state.t("err.batch.empty"),
         })
 
     added = 0
@@ -201,7 +201,7 @@ async def batch_submit(
     await db.commit()
     return templates.TemplateResponse("admin/card_batch.html", {
         "request": request, "user": user.username,
-        "success": f"成功添加 {added} 条，跳过 {skipped} 条",
+        "success": request.state.t("info.batch.success", added=added, skipped=skipped),
     })
 
 

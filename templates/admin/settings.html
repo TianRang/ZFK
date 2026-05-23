@@ -1,19 +1,19 @@
 {% extends "admin/base.html" %}
-{% block title %}系统设置 - 管理后台{% endblock %}
+{% block title %}{{ t('settings.title') }} - {{ t('auth.admin_panel') }}{% endblock %}
 {% block content %}
 <div class="page-header">
     <div>
-        <h1><span class="h1-dot"></span>系统设置</h1>
-        <p class="page-subtitle">站点信息、后台路径、安全设置</p>
+        <h1><span class="h1-dot"></span>{{ t('settings.title') }}</h1>
+        <p class="page-subtitle">{{ t('settings.subtitle') }}</p>
     </div>
 </div>
 
 <div class="tabs-bar" id="settingsTabs">
-    <button data-tab="site" class="active">站点信息</button>
-    <button data-tab="template">前台模板</button>
-    <button data-tab="prefix">后台路径</button>
-    <button data-tab="api">API 接口</button>
-    <button data-tab="password">修改密码</button>
+    <button data-tab="site" class="active">{{ t('settings.tab_site') }}</button>
+    <button data-tab="template">{{ t('settings.tab_template') }}</button>
+    <button data-tab="prefix">{{ t('settings.tab_prefix') }}</button>
+    <button data-tab="api">{{ t('settings.tab_api') }}</button>
+    <button data-tab="password">{{ t('settings.tab_password') }}</button>
 </div>
 
 <!-- ==================== 站点信息 ==================== -->
@@ -21,21 +21,21 @@
     <div class="detail-card settings-grid">
         <h3>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-            站点信息
+            {{ t('settings.section_site') }}
         </h3>
-        {% if site_success %}<div class="alert alert-success"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>站点信息已保存</span></div>{% endif %}
+        {% if site_success %}<div class="alert alert-success"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>{{ t('settings.site_saved') }}</span></div>{% endif %}
         <form action="{{ admin_prefix }}/settings/site" method="post">
             <div class="form-group">
-                <label for="site_name">站点名称</label>
-                <input type="text" id="site_name" name="site_name" value="{{ site.site_name }}" required placeholder="卡密提取">
-                <p class="form-hint">显示在浏览器标题、侧栏、登录页和前台首页</p>
+                <label for="site_name">{{ t('settings.site_name_label') }}</label>
+                <input type="text" id="site_name" name="site_name" value="{{ site.site_name }}" required placeholder="{{ t('site.default_name') }}">
+                <p class="form-hint">{{ t('settings.site_name_hint') }}</p>
             </div>
             <div class="form-group">
-                <label for="site_subtitle">副标题</label>
-                <input type="text" id="site_subtitle" name="site_subtitle" value="{{ site.site_subtitle }}" placeholder="输入卡密查看内容">
-                <p class="form-hint">显示在前台首页的标题下方</p>
+                <label for="site_subtitle">{{ t('settings.site_subtitle_label') }}</label>
+                <input type="text" id="site_subtitle" name="site_subtitle" value="{{ site.site_subtitle }}" placeholder="{{ t('site.default_subtitle') }}">
+                <p class="form-hint">{{ t('settings.site_subtitle_hint') }}</p>
             </div>
-            <button type="submit" class="btn btn-primary">保存</button>
+            <button type="submit" class="btn btn-primary">{{ t('common.save') }}</button>
         </form>
     </div>
 </div>
@@ -45,10 +45,10 @@
     <div class="detail-card settings-grid">
         <h3>
             <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0L9 8.586l1.293-1.293a1 1 0 111.414 1.414L10.414 10l1.293 1.293a1 1 0 01-1.414 1.414L9 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L7.586 10 6.293 8.707a1 1 0 010-1.414z"/></svg>
-            前台模板
+            {{ t('settings.section_template') }}
         </h3>
-        {% if tpl_success %}<div class="alert alert-success"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>模板已切换</span></div>{% endif %}
-        <p style="font-size:.78rem;color:var(--text-secondary);margin-bottom:1rem">选择前台用户访问时使用的模板风格，保存后立即生效</p>
+        {% if tpl_success %}<div class="alert alert-success"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>{{ t('settings.template_saved') }}</span></div>{% endif %}
+        <p style="font-size:.78rem;color:var(--text-secondary);margin-bottom:1rem">{{ t('settings.template_intro') }}</p>
         <form action="{{ admin_prefix }}/settings/template" method="post" id="tplForm">
             {% set current_tpl = site.front_template or 'default' %}
             <div class="tpl-grid">
@@ -63,8 +63,8 @@
                         </div>
                     </div>
                     <div class="tpl-meta">
-                        <strong>默认模板</strong>
-                        <span>简洁现代，适合大多数场景</span>
+                        <strong>{{ t('settings.tpl_default') }}</strong>
+                        <span>{{ t('settings.tpl_default_desc') }}</span>
                     </div>
                 </label>
                 <label class="tpl-card {% if current_tpl == 'cartoon' %}is-active{% endif %}">
@@ -80,8 +80,8 @@
                         <div class="tpl-preview-cloud tpl-preview-cloud-2"></div>
                     </div>
                     <div class="tpl-meta">
-                        <strong>卡通模板</strong>
-                        <span>可爱手绘风，圆润配色与小吉祥物</span>
+                        <strong>{{ t('settings.tpl_cartoon') }}</strong>
+                        <span>{{ t('settings.tpl_cartoon_desc') }}</span>
                     </div>
                 </label>
                 <label class="tpl-card {% if current_tpl == 'mario' %}is-active{% endif %}">
@@ -100,12 +100,12 @@
                         <div class="tpl-preview-mario-ground"></div>
                     </div>
                     <div class="tpl-meta">
-                        <strong>像素模板</strong>
-                        <span>超级马里奥风，8-bit 像素与砖块地面</span>
+                        <strong>{{ t('settings.tpl_mario') }}</strong>
+                        <span>{{ t('settings.tpl_mario_desc') }}</span>
                     </div>
                 </label>
             </div>
-            <button type="submit" class="btn btn-primary" style="margin-top:1rem">保存模板</button>
+            <button type="submit" class="btn btn-primary" style="margin-top:1rem">{{ t('settings.save_template') }}</button>
         </form>
     </div>
 </div>
@@ -115,21 +115,21 @@
     <div class="detail-card settings-grid">
         <h3>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
-            后台路径
+            {{ t('settings.section_prefix') }}
         </h3>
-        {% if prefix_success %}<div class="alert alert-success"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>已保存到 .env 文件，重启服务后生效</span></div>{% endif %}
+        {% if prefix_success %}<div class="alert alert-success"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>{{ t('settings.prefix_saved') }}</span></div>{% endif %}
         {% if prefix_error %}<div class="alert alert-error"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg><span>{{ prefix_error }}</span></div>{% endif %}
-        <form action="{{ admin_prefix }}/settings/prefix" method="post">
+        <form action="{{ admin_prefix }}/settings/prefix" method="post" data-confirm-prefix="{{ t('settings.confirm_prefix') }}">
             <div class="form-group">
-                <label for="admin_prefix">后台入口路径</label>
+                <label for="admin_prefix">{{ t('settings.prefix_label') }}</label>
                 <input type="text" id="admin_prefix" name="admin_prefix" value="{{ current_prefix or admin_prefix }}" required placeholder="/admin" pattern="^/[a-zA-Z0-9/_-]*$">
-                <p class="form-hint">修改后将写入 .env 文件，需要重启服务才能生效。路径必须以 <code>/</code> 开头，仅允许字母、数字、下划线和短横线</p>
+                <p class="form-hint">{{ t('settings.prefix_hint') | safe }}</p>
             </div>
             <div class="form-note">
-                <strong>当前路径：</strong><code>{{ current_prefix or admin_prefix }}</code>
-                <br>访问地址示例：<code>http://your-domain{{ current_prefix or admin_prefix }}/</code>
+                {{ t('settings.prefix_current') | safe }}<code>{{ current_prefix or admin_prefix }}</code>
+                {{ t('settings.prefix_example') | safe }}<code>http://your-domain{{ current_prefix or admin_prefix }}/</code>
             </div>
-            <button type="submit" class="btn btn-primary" onclick="return confirm('修改后台路径会重写 .env 文件，需要重启服务后生效，确定继续？')">保存</button>
+            <button type="submit" class="btn btn-primary" id="prefixSaveBtn">{{ t('common.save') }}</button>
         </form>
     </div>
 </div>
@@ -139,33 +139,33 @@
     <div class="detail-card settings-grid">
         <h3>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-            API 接口
+            {{ t('settings.section_api') }}
         </h3>
 
         {% if api_new_key %}
         <div class="alert alert-success" style="flex-direction:column;align-items:flex-start;gap:.5rem">
             <div style="display:flex;align-items:center;gap:.5rem">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                <span>已创建「{{ api_new_name }}」，请立即复制并妥善保存，此密钥只显示一次。</span>
+                <span>{{ t('settings.api_created_alert', name=api_new_name) }}</span>
             </div>
             <div class="apikey-reveal">
                 <code id="newApiKey">{{ api_new_key }}</code>
-                <button type="button" class="btn btn-sm" onclick="copyNewKey(this)">复制</button>
+                <button type="button" class="btn btn-sm" data-copied-text="{{ t('common.copied') }}" onclick="copyNewKey(this)">{{ t('common.copy') }}</button>
             </div>
         </div>
         {% endif %}
 
         <p style="font-size:.78rem;color:var(--text-secondary);margin-bottom:1rem">
-            创建 API Key 用于对接外部系统，可通过 <code>X-API-Key</code> 请求头调用接口。
-            <a href="{{ admin_prefix }}/api-docs" target="_blank" rel="noopener">查看 API 文档 →</a>
+            {{ t('settings.api_intro_html') | safe }}
+            <a href="{{ admin_prefix }}/api-docs" target="_blank" rel="noopener">{{ t('settings.api_docs_link') }}</a>
         </p>
 
         <form action="{{ admin_prefix }}/settings/api-keys/create" method="post" style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1.2rem">
             <div class="form-group" style="flex:1;min-width:200px;margin-bottom:0">
-                <label for="api_name">名称</label>
-                <input type="text" id="api_name" name="name" required maxlength="100" placeholder="例如：对接系统 A">
+                <label for="api_name">{{ t('settings.api_name') }}</label>
+                <input type="text" id="api_name" name="name" required maxlength="100" placeholder="{{ t('settings.api_name_placeholder') }}">
             </div>
-            <button type="submit" class="btn btn-primary">创建 API Key</button>
+            <button type="submit" class="btn btn-primary">{{ t('settings.api_create') }}</button>
         </form>
 
         {% if api_keys %}
@@ -173,13 +173,13 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>名称</th>
-                        <th>密钥前缀</th>
-                        <th>状态</th>
-                        <th>调用次数</th>
-                        <th>最后使用</th>
-                        <th>创建时间</th>
-                        <th style="width:160px">操作</th>
+                        <th>{{ t('settings.api_col_name') }}</th>
+                        <th>{{ t('settings.api_col_prefix') }}</th>
+                        <th>{{ t('settings.api_col_status') }}</th>
+                        <th>{{ t('settings.api_col_calls') }}</th>
+                        <th>{{ t('settings.api_col_last') }}</th>
+                        <th>{{ t('settings.api_col_created') }}</th>
+                        <th style="width:160px">{{ t('settings.api_col_actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -189,9 +189,9 @@
                         <td><code>{{ k.key_prefix }}…</code></td>
                         <td>
                             {% if k.is_active %}
-                            <span class="badge badge-success">启用</span>
+                            <span class="badge badge-success">{{ t('settings.api_active') }}</span>
                             {% else %}
-                            <span class="badge">停用</span>
+                            <span class="badge">{{ t('settings.api_inactive') }}</span>
                             {% endif %}
                         </td>
                         <td>{{ k.total_calls }}</td>
@@ -199,10 +199,10 @@
                         <td>{{ k.created_at.strftime('%Y-%m-%d %H:%M') if k.created_at else '—' }}</td>
                         <td>
                             <form action="{{ admin_prefix }}/settings/api-keys/{{ k.id }}/toggle" method="post" style="display:inline">
-                                <button type="submit" class="btn btn-sm">{% if k.is_active %}停用{% else %}启用{% endif %}</button>
+                                <button type="submit" class="btn btn-sm">{% if k.is_active %}{{ t('settings.api_disable') }}{% else %}{{ t('settings.api_enable') }}{% endif %}</button>
                             </form>
-                            <form action="{{ admin_prefix }}/settings/api-keys/{{ k.id }}/delete" method="post" style="display:inline" onsubmit="return confirm('确定删除该 API Key？删除后无法恢复');">
-                                <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                            <form action="{{ admin_prefix }}/settings/api-keys/{{ k.id }}/delete" method="post" style="display:inline" data-confirm-msg="{{ t('settings.api_confirm_delete') }}">
+                                <button type="submit" class="btn btn-sm btn-danger">{{ t('common.delete') }}</button>
                             </form>
                         </td>
                     </tr>
@@ -211,7 +211,7 @@
             </table>
         </div>
         {% else %}
-        <div style="padding:1.5rem;text-align:center;color:var(--text-secondary);font-size:.85rem;border:1px dashed var(--border);border-radius:var(--radius-lg)">还没有 API Key，创建一个开始对接吧</div>
+        <div style="padding:1.5rem;text-align:center;color:var(--text-secondary);font-size:.85rem;border:1px dashed var(--border);border-radius:var(--radius-lg)">{{ t('settings.api_empty') }}</div>
         {% endif %}
     </div>
 </div>
@@ -221,24 +221,24 @@
     <div class="detail-card settings-grid">
         <h3>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
-            修改密码
+            {{ t('settings.section_password') }}
         </h3>
         {% if pwd_error %}<div class="alert alert-error"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg><span>{{ pwd_error }}</span></div>{% endif %}
-        {% if pwd_success %}<div class="alert alert-success"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>密码修改成功</span></div>{% endif %}
-        <form action="{{ admin_prefix }}/settings/password" method="post" id="pwdForm">
+        {% if pwd_success %}<div class="alert alert-success"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><span>{{ t('settings.password_saved') }}</span></div>{% endif %}
+        <form action="{{ admin_prefix }}/settings/password" method="post" id="pwdForm" data-mismatch="{{ t('settings.confirm_password_form_alert') }}">
             <div class="form-group">
-                <label for="old_password">原密码 <span class="req">*</span></label>
+                <label for="old_password">{{ t('settings.old_password') }} <span class="req">*</span></label>
                 <input type="password" id="old_password" name="old_password" required autocomplete="current-password">
             </div>
             <div class="form-group">
-                <label for="new_password">新密码 <span class="req">*</span> <span class="field-tip">至少 6 位</span></label>
+                <label for="new_password">{{ t('settings.new_password') }} <span class="req">*</span> <span class="field-tip">{{ t('auth.password_min') }}</span></label>
                 <input type="password" id="new_password" name="new_password" required minlength="6" autocomplete="new-password">
             </div>
             <div class="form-group">
-                <label for="confirm_password">确认新密码 <span class="req">*</span></label>
+                <label for="confirm_password">{{ t('settings.confirm_new_password') }} <span class="req">*</span></label>
                 <input type="password" id="confirm_password" name="confirm_password" required minlength="6" autocomplete="new-password">
             </div>
-            <button type="submit" class="btn btn-primary">修改密码</button>
+            <button type="submit" class="btn btn-primary">{{ t('settings.save_password') }}</button>
         </form>
     </div>
 </div>
@@ -262,14 +262,37 @@
     activate(initial);
 })();
 
-document.getElementById('pwdForm').addEventListener('submit', function(e) {
-    var n = document.getElementById('new_password').value;
-    var c = document.getElementById('confirm_password').value;
-    if (n !== c) {
-        e.preventDefault();
-        alert('两次输入的新密码不一致');
+(function() {
+    var pwdForm = document.getElementById('pwdForm');
+    if (pwdForm) {
+        pwdForm.addEventListener('submit', function(e) {
+            var n = document.getElementById('new_password').value;
+            var c = document.getElementById('confirm_password').value;
+            if (n !== c) {
+                e.preventDefault();
+                alert(this.getAttribute('data-mismatch') || 'Passwords do not match');
+            }
+        });
     }
-});
+})();
+
+(function() {
+    var prefixForm = document.querySelector('form[data-confirm-prefix]');
+    if (prefixForm) {
+        prefixForm.addEventListener('submit', function(e) {
+            if (!confirm(this.getAttribute('data-confirm-prefix'))) e.preventDefault();
+        });
+    }
+})();
+
+(function() {
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        if (!form || !form.hasAttribute('data-confirm-msg')) return;
+        var msg = form.getAttribute('data-confirm-msg') || 'Confirm?';
+        if (!confirm(msg)) e.preventDefault();
+    });
+})();
 
 (function() {
     var cards = document.querySelectorAll('.tpl-card');
@@ -288,7 +311,8 @@ function copyNewKey(btn) {
     if (!el || !btn) return;
     navigator.clipboard.writeText(el.textContent.trim()).then(function() {
         var t = btn.textContent;
-        btn.textContent = '已复制';
+        var copied = btn.getAttribute('data-copied-text') || 'Copied';
+        btn.textContent = copied;
         setTimeout(function() { btn.textContent = t; }, 1500);
     });
 }

@@ -1,30 +1,30 @@
 {% extends "admin/base.html" %}
-{% block title %}卡密列表 - 管理后台{% endblock %}
+{% block title %}{{ t('cards.title') }} - {{ t('auth.admin_panel') }}{% endblock %}
 {% block content %}
 <div class="page-header">
     <div>
-        <h1><span class="h1-dot"></span>卡密列表</h1>
-        <p class="page-subtitle">共 <strong style="color:var(--text)">{{ total }}</strong> 张卡密。点击卡密旁边的按钮即可复制。</p>
+        <h1><span class="h1-dot"></span>{{ t('cards.title') }}</h1>
+        <p class="page-subtitle">{{ t('cards.subtitle', total=total) }}</p>
     </div>
     <div class="btn-group">
         <a href="{{ admin_prefix }}/cards/add" class="btn btn-primary">
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
-            添加卡密
+            {{ t('cards.add') }}
         </a>
         <a href="{{ admin_prefix }}/cards/batch" class="btn">
             <svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
-            批量添加
+            {{ t('cards.batch_add') }}
         </a>
     </div>
 </div>
 
 <div class="filter-bar">
-    <input type="text" id="searchInput" placeholder="搜索卡密或内容…" class="filter-input">
+    <input type="text" id="searchInput" placeholder="{{ t('cards.search_placeholder') }}" class="filter-input">
     <div class="filter-tabs" id="filterTabs">
-        <button class="filter-tab active" data-type="all">全部 <span class="filter-count">{{ cards|length }}</span></button>
-        <button class="filter-tab" data-type="normal">通用</button>
-        <button class="filter-tab" data-type="points">点数</button>
-        <button class="filter-tab" data-type="shared_stock">共享库存</button>
+        <button class="filter-tab active" data-type="all">{{ t('cards.filter_all') }} <span class="filter-count">{{ cards|length }}</span></button>
+        <button class="filter-tab" data-type="normal">{{ t('cards.filter_normal') }}</button>
+        <button class="filter-tab" data-type="points">{{ t('cards.filter_points') }}</button>
+        <button class="filter-tab" data-type="shared_stock">{{ t('cards.filter_shared') }}</button>
     </div>
 </div>
 
@@ -32,12 +32,12 @@
 <table class="table" id="cardsTable">
     <thead>
         <tr>
-            <th style="width:60px">ID</th>
-            <th>卡密</th>
-            <th style="width:90px">类型</th>
-            <th>内容 / 额度</th>
-            <th style="width:140px">创建时间</th>
-            <th style="width:90px">操作</th>
+            <th style="width:60px">{{ t('cards.col_id') }}</th>
+            <th>{{ t('cards.col_key') }}</th>
+            <th style="width:90px">{{ t('cards.col_type') }}</th>
+            <th>{{ t('cards.col_content') }}</th>
+            <th style="width:140px">{{ t('cards.col_created') }}</th>
+            <th style="width:90px">{{ t('cards.col_actions') }}</th>
         </tr>
     </thead>
     <tbody>
@@ -47,15 +47,15 @@
             <td>
                 <div style="display:flex;align-items:center;gap:.45rem">
                     <code id="key-{{ card.id }}">{{ card.key }}</code>
-                    <button class="copy-btn" data-copy="{{ card.key }}" title="复制卡密" type="button">
+                    <button class="copy-btn" data-copy="{{ card.key }}" title="{{ t('cards.copy_key') }}" type="button">
                         <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/></svg>
                     </button>
                 </div>
             </td>
             <td>
-                {% if card.card_type == 'points' %}<span class="badge badge-primary">点数</span>
-                {% elif card.card_type == 'shared_stock' %}<span class="badge badge-accent">共享库存</span>
-                {% else %}<span class="badge">通用</span>{% endif %}
+                {% if card.card_type == 'points' %}<span class="badge badge-primary">{{ t('badge.points') }}</span>
+                {% elif card.card_type == 'shared_stock' %}<span class="badge badge-accent">{{ t('badge.shared_stock') }}</span>
+                {% else %}<span class="badge">{{ t('badge.normal') }}</span>{% endif %}
             </td>
             <td class="content-cell">
                 {% if card.card_type == 'points' %}
@@ -63,7 +63,7 @@
                     <div class="usage-bar-wrap">
                         <div class="usage-bar {% if pct >= 80 %}usage-bar-warning{% endif %}" style="width:{{ pct }}%"></div>
                     </div>
-                    <span style="font-size:.75rem;color:var(--text-muted)" class="tabnums">{{ card.used_points }}/{{ card.total_points }} 已用</span>
+                    <span style="font-size:.75rem;color:var(--text-muted)" class="tabnums">{{ card.used_points }}/{{ card.total_points }} {{ t('cards.used_suffix') }}</span>
                 {% elif card.card_type == 'shared_stock' %}
                     {% set pct = ((card.used_points / card.total_points) * 100)|int if card.total_points else 0 %}
                     <div style="display:flex;align-items:center;gap:.5rem">
@@ -79,16 +79,16 @@
             </td>
             <td style="font-size:.75rem;color:var(--text-muted)">{{ card.created_at.strftime('%Y-%m-%d %H:%M') if card.created_at else '—' }}</td>
             <td>
-                <form action="{{ admin_prefix }}/cards/{{ card.id }}/delete" method="post" data-confirm-delete="卡密 {{ card.key }}">
-                    <button type="submit" class="btn btn-sm btn-danger">删除</button>
+                <form action="{{ admin_prefix }}/cards/{{ card.id }}/delete" method="post" data-confirm-msg="{{ t('admin.confirm_delete_named', label=t('cards.confirm_delete', key=card.key)) }}">
+                    <button type="submit" class="btn btn-sm btn-danger">{{ t('common.delete') }}</button>
                 </form>
             </td>
         </tr>
         {% else %}
         <tr><td colspan="6" class="empty-cell">
             <svg class="empty-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z" clip-rule="evenodd"/></svg>
-            <div>暂无卡密</div>
-            <div style="margin-top:.5rem"><a href="{{ admin_prefix }}/cards/add">立即添加 →</a></div>
+            <div>{{ t('cards.empty') }}</div>
+            <div style="margin-top:.5rem"><a href="{{ admin_prefix }}/cards/add">{{ t('cards.add_now') }}</a></div>
         </td></tr>
         {% endfor %}
     </tbody>
@@ -99,24 +99,24 @@
     {% for card in cards %}
     <div class="card-item" data-type="{{ card.card_type }}" data-key="{{ card.key|lower }}" data-content="{{ card.content[:60]|lower if card.content else '' }}">
         <div class="card-item-row">
-            <span class="card-item-label">卡密</span>
+            <span class="card-item-label">{{ t('cards.label_key') }}</span>
             <span class="card-item-value" style="display:flex;align-items:center;gap:.3rem;justify-content:flex-end">
                 <code>{{ card.key }}</code>
-                <button class="copy-btn" data-copy="{{ card.key }}" title="复制" type="button">
+                <button class="copy-btn" data-copy="{{ card.key }}" title="{{ t('common.copy') }}" type="button">
                     <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/></svg>
                 </button>
             </span>
         </div>
         <div class="card-item-row">
-            <span class="card-item-label">类型</span>
+            <span class="card-item-label">{{ t('cards.label_type') }}</span>
             <span class="card-item-value">
-                {% if card.card_type == 'points' %}<span class="badge badge-primary">点数</span>
-                {% elif card.card_type == 'shared_stock' %}<span class="badge badge-accent">共享库存</span>
-                {% else %}<span class="badge">通用</span>{% endif %}
+                {% if card.card_type == 'points' %}<span class="badge badge-primary">{{ t('badge.points') }}</span>
+                {% elif card.card_type == 'shared_stock' %}<span class="badge badge-accent">{{ t('badge.shared_stock') }}</span>
+                {% else %}<span class="badge">{{ t('badge.normal') }}</span>{% endif %}
             </span>
         </div>
         <div class="card-item-row">
-            <span class="card-item-label">{% if card.card_type == 'points' %}额度{% elif card.card_type == 'shared_stock' %}商品/额度{% else %}内容{% endif %}</span>
+            <span class="card-item-label">{% if card.card_type == 'points' %}{{ t('cards.label_quota') }}{% elif card.card_type == 'shared_stock' %}{{ t('cards.label_product_quota') }}{% else %}{{ t('cards.label_content') }}{% endif %}</span>
             <span class="card-item-value">
                 {% if card.card_type == 'points' %}<span class="tabnums">{{ card.used_points }}/{{ card.total_points }}</span>
                 {% elif card.card_type == 'shared_stock' %}{{ product_map.get(card.product_id, '?') }} | <span class="tabnums">{{ card.used_points }}/{{ card.total_points }}</span>
@@ -124,8 +124,8 @@
             </span>
         </div>
         <div class="card-item-actions">
-            <form action="{{ admin_prefix }}/cards/{{ card.id }}/delete" method="post" data-confirm-delete style="flex:1">
-                <button type="submit" class="btn btn-sm btn-danger" style="width:100%">删除</button>
+            <form action="{{ admin_prefix }}/cards/{{ card.id }}/delete" method="post" data-confirm-msg="{{ t('admin.confirm_delete') }}" style="flex:1">
+                <button type="submit" class="btn btn-sm btn-danger" style="width:100%">{{ t('common.delete') }}</button>
             </form>
         </div>
     </div>
@@ -134,9 +134,9 @@
 
 {% if total_pages > 1 %}
 <div class="pagination">
-    {% if page > 1 %}<a href="{{ admin_prefix }}/cards?page={{ page - 1 }}" class="btn btn-sm">← 上一页</a>{% endif %}
-    <span class="tabnums">第 {{ page }} / {{ total_pages }} 页 · 共 {{ total }} 条</span>
-    {% if page < total_pages %}<a href="{{ admin_prefix }}/cards?page={{ page + 1 }}" class="btn btn-sm">下一页 →</a>{% endif %}
+    {% if page > 1 %}<a href="{{ admin_prefix }}/cards?page={{ page - 1 }}" class="btn btn-sm">{{ t('cards.prev_page') }}</a>{% endif %}
+    <span class="tabnums">{{ t('cards.page_of', page=page, total_pages=total_pages, total=total) }}</span>
+    {% if page < total_pages %}<a href="{{ admin_prefix }}/cards?page={{ page + 1 }}" class="btn btn-sm">{{ t('cards.next_page') }}</a>{% endif %}
 </div>
 {% endif %}
 
@@ -190,9 +190,8 @@
 
     document.addEventListener('submit', function(e) {
         var form = e.target;
-        if (!form || !form.hasAttribute('data-confirm-delete')) return;
-        var label = form.getAttribute('data-confirm-delete');
-        var msg = label ? '确定删除' + label + '？' : '确定删除？';
+        if (!form || !form.hasAttribute('data-confirm-msg')) return;
+        var msg = form.getAttribute('data-confirm-msg') || 'Confirm?';
         if (!confirm(msg)) e.preventDefault();
     });
 })();

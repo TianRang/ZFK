@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{{ 'en' if lang == 'en' else 'zh-CN' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ site_name }}</title>
+    <title>{{ site_name or t('site.default_name') }}</title>
     <link rel="stylesheet" href="/static/css/app.css">
     {% set _site = request.state.site if request.state.site is defined else {} %}
 </head>
 <body>
+    {% include "front/_lang_switch.html" %}
     <div class="auth-container">
         <div class="auth-card front-card">
             <div class="front-icon-wrap" aria-hidden="true">
@@ -31,8 +32,8 @@
                 {% endif %}
             </div>
 
-            <h1>{{ site_name }}</h1>
-            <h2>{{ site_subtitle }}</h2>
+            <h1>{{ site_name or t('site.default_name') }}</h1>
+            <h2>{{ site_subtitle or t('site.default_subtitle') }}</h2>
 
             {% if error %}
             <div class="alert alert-error">
@@ -47,57 +48,65 @@
                 <input type="hidden" name="step" value="2">
                 <div class="form-group">
                     <label for="amount">
-                        提取数量
-                        <span class="field-tip">剩余 <strong style="color:var(--success);margin-left:.2em">{{ remaining }}</strong></span>
+                        {{ t('front.amount') }}
+                        <span class="field-tip">{{ t('front.remaining') }} <strong style="color:var(--success);margin-left:.2em">{{ remaining }}</strong></span>
                     </label>
                     <div class="stepper" data-min="1" data-max="{{ remaining }}">
-                        <button type="button" data-step="-1" aria-label="减少">−</button>
+                        <button type="button" data-step="-1" aria-label="-">−</button>
                         <input type="number" id="amount" name="amount" min="1" max="{{ remaining }}" value="1" required autofocus>
-                        <button type="button" data-step="1" aria-label="增加">+</button>
+                        <button type="button" data-step="1" aria-label="+">+</button>
                     </div>
-                    <p class="form-hint">每次提取最多 {{ remaining }} 条</p>
+                    <p class="form-hint">{{ t('front.remaining_each', n=remaining) }}</p>
                 </div>
                 {% if card_description %}<div class="card-desc">{{ card_description }}</div>{% endif %}
-                <button type="submit" class="btn btn-primary btn-block" data-loading style="margin-top:.85rem">确认提取</button>
+                <button type="submit" class="btn btn-primary btn-block" data-loading style="margin-top:.85rem">{{ t('front.confirm_extract') }}</button>
             </form>
             <form action="/" method="get" style="margin-top:.6rem">
-                <button type="submit" class="btn btn-block">← 返回</button>
+                <button type="submit" class="btn btn-block">← {{ t('common.back') }}</button>
             </form>
 
             {% elif content %}
             <div class="result">
                 <div class="result-header">
                     <span class="result-dot"></span>
-                    <span>{{ extract_info or '提取成功' }}</span>
+                    <span>{{ extract_info or t('front.extract_success') }}</span>
                 </div>
-                {% if card_description %}<div class="card-desc">{{ card_description }}</div>{% endif %}
-                <pre class="result-body" id="result-text">{{ content }}</pre>
-                <button id="copyBtn" onclick="doCopy()" class="btn btn-block result-btn">
+                {% if card_description %}
+                <div class="result-section">
+                    <div class="result-label">{{ t('front.section_desc') }}</div>
+                    <div class="card-desc">{{ card_description }}</div>
+                </div>
+                {% endif %}
+                <div class="result-section">
+                    <div class="result-label">{{ t('front.section_content') }}</div>
+                    <pre class="result-body" id="result-text">{{ content }}</pre>
+                </div>
+                <button id="copyBtn" onclick="doCopy()" class="btn btn-block result-btn" data-copied-text="{{ t('common.copied') }}">
                     <svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/></svg>
-                    复制内容
+                    {{ t('front.copy_content') }}
                 </button>
             </div>
             <form action="/" method="get" style="margin-top:.6rem">
-                <button type="submit" class="btn btn-block">再次提取</button>
+                <button type="submit" class="btn btn-block">{{ t('front.again') }}</button>
             </form>
 
             {% else %}
             <form action="/" method="post" id="extractForm">
                 <input type="hidden" name="step" value="1">
                 <div class="form-group">
-                    <label for="key">卡密</label>
-                    <input type="text" id="key" name="key" placeholder="请输入您的卡密" value="{{ key or '' }}" required autofocus autocomplete="off" spellcheck="false">
+                    <label for="key">{{ t('front.card_key') }}</label>
+                    <input type="text" id="key" name="key" placeholder="{{ t('front.card_key_placeholder') }}" value="{{ key or '' }}" required autofocus autocomplete="off" spellcheck="false">
                 </div>
                 <div class="form-group">
-                    <label for="captcha">验证码</label>
+                    <label for="captcha">{{ t('front.captcha') }}</label>
                     <div class="captcha-row">
-                        <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required maxlength="4" autocomplete="off">
-                        <img id="captchaImg" src="{{ captcha_img }}" alt="验证码" onclick="refreshCaptcha()" title="点击刷新">
+                        <input type="text" id="captcha" name="captcha" placeholder="{{ t('front.captcha_placeholder') }}" required maxlength="4" autocomplete="off">
+                        <img id="captchaImg" src="{{ captcha_img }}" alt="{{ t('front.captcha') }}" onclick="refreshCaptcha()" title="{{ t('common.refresh') }}">
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block" data-loading>
                     <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd" transform="rotate(180 10 10)"/></svg>
-                    提取
+                    {{ t('front.extract') }}
                 </button>
             </form>
 
@@ -115,7 +124,8 @@
         if (!text || !btn) return;
         navigator.clipboard.writeText(text.innerText).then(function() {
             var html = btn.innerHTML;
-            btn.innerHTML = '<svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> 已复制';
+            var copied = btn.getAttribute('data-copied-text') || 'Copied';
+            btn.innerHTML = '<svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> ' + copied;
             btn.style.background = 'rgba(52,211,153,.18)';
             btn.style.borderColor = 'rgba(52,211,153,.4)';
             btn.style.color = 'var(--success)';
@@ -130,7 +140,6 @@
         });
     }
 
-    /* Stepper for points amount */
     (function() {
         var stepper = document.querySelector('.stepper');
         if (!stepper) return;
@@ -154,7 +163,6 @@
         });
     })();
 
-    /* Loading state on submit */
     document.querySelectorAll('form').forEach(function(form) {
         form.addEventListener('submit', function() {
             var btn = form.querySelector('button[data-loading]');

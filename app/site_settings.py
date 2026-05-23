@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import SiteSettings
 
 DEFAULTS = {
-    "site_name": "卡密提取",
-    "site_subtitle": "输入卡密查看内容",
+    "site_name": "",
+    "site_subtitle": "",
     "front_template": "default",
 }
 

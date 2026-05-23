@@ -4,10 +4,23 @@ from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 
 from app.config import settings
+from app.i18n import DEFAULT_LANG, build_t
 
 _bundle_dir = os.environ.get("_MEIPASS", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-templates = Jinja2Templates(directory=os.path.join(_bundle_dir, "templates"))
+
+def _i18n_context(request: Request) -> dict:
+    t = getattr(request.state, "t", None)
+    lang = getattr(request.state, "lang", DEFAULT_LANG)
+    if t is None:
+        t = build_t(DEFAULT_LANG)
+    return {"t": t, "lang": lang}
+
+
+templates = Jinja2Templates(
+    directory=os.path.join(_bundle_dir, "templates"),
+    context_processors=[_i18n_context],
+)
 templates.env.globals["admin_prefix"] = settings.admin_prefix
 
 

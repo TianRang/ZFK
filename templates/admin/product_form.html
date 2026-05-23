@@ -1,14 +1,14 @@
 {% extends "admin/base.html" %}
-{% block title %}{{ '编辑商品' if editing else '添加商品' }} - 管理后台{% endblock %}
+{% block title %}{{ t('product_form.title_edit') if editing else t('product_form.title_add') }} - {{ t('auth.admin_panel') }}{% endblock %}
 {% block content %}
 <div class="page-header">
     <div>
-        <h1><span class="h1-dot"></span>{{ '编辑商品' if editing else '添加商品' }}</h1>
-        <p class="page-subtitle">{% if editing %}修改商品信息或追加库存{% else %}创建商品，作为共享库存类型卡密的库存池{% endif %}</p>
+        <h1><span class="h1-dot"></span>{{ t('product_form.title_edit') if editing else t('product_form.title_add') }}</h1>
+        <p class="page-subtitle">{% if editing %}{{ t('product_form.subtitle_edit') }}{% else %}{{ t('product_form.subtitle_add') }}{% endif %}</p>
     </div>
     <a href="{{ admin_prefix }}/products" class="btn btn-back">
         <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
-        返回列表
+        {{ t('card_form.return_list') }}
     </a>
 </div>
 
@@ -22,51 +22,56 @@
 <div class="detail-card">
 {% if editing %}
 <div style="display:flex;gap:.85rem;flex-wrap:wrap;margin-bottom:1.1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)">
-    <div style="flex:1;min-width:120px"><div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">总库存</div><div class="tabnums" style="font-size:1.5rem;font-weight:700;color:var(--primary)">{{ product.total_stock }}</div></div>
-    <div style="flex:1;min-width:120px"><div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">已使用</div><div class="tabnums" style="font-size:1.5rem;font-weight:700;color:var(--warning)">{{ product.used_stock }}</div></div>
-    <div style="flex:1;min-width:120px"><div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">剩余</div><div class="tabnums" style="font-size:1.5rem;font-weight:700;color:var(--success)">{{ product.total_stock - product.used_stock }}</div></div>
+    <div style="flex:1;min-width:120px"><div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">{{ t('product_form.total_stock') }}</div><div class="tabnums" style="font-size:1.5rem;font-weight:700;color:var(--primary)">{{ product.total_stock }}</div></div>
+    <div style="flex:1;min-width:120px"><div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">{{ t('product_form.used_stock') }}</div><div class="tabnums" style="font-size:1.5rem;font-weight:700;color:var(--warning)">{{ product.used_stock }}</div></div>
+    <div style="flex:1;min-width:120px"><div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">{{ t('product_form.remaining') }}</div><div class="tabnums" style="font-size:1.5rem;font-weight:700;color:var(--success)">{{ product.total_stock - product.used_stock }}</div></div>
 </div>
 {% endif %}
 
-<form action="{{ admin_prefix }}/products/{{ product.id ~ '/edit' if editing else 'add' }}" method="post" class="form" id="prodForm">
+<form action="{{ admin_prefix }}/products/{{ product.id ~ '/edit' if editing else 'add' }}" method="post" class="form" id="prodForm"
+      data-stock-tpl="{{ t('product_form.stock_count_unit', n='__N__') }}">
     <div class="form-group">
-        <label for="name">商品名称 <span class="req">*</span></label>
-        <input type="text" id="name" name="name" value="{{ name or '' }}" required placeholder="用于标识商品，如：Netflix账号" {% if not editing %}autofocus{% endif %}>
-        <p class="form-hint">名称需唯一，将在创建卡密时用于关联</p>
+        <label for="name">{{ t('product_form.name') }} <span class="req">*</span></label>
+        <input type="text" id="name" name="name" value="{{ name or '' }}" required placeholder="{{ t('product_form.name_placeholder') }}" {% if not editing %}autofocus{% endif %}>
+        <p class="form-hint">{{ t('product_form.name_hint') }}</p>
     </div>
     <div class="form-group">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
-            <label for="stock" style="margin:0">库存内容</label>
-            <span id="stockCount" style="font-size:.75rem;color:var(--text-muted)" class="tabnums">0 条</span>
+            <label for="stock" style="margin:0">{{ t('product_form.stock_content') }}</label>
+            <span id="stockCount" style="font-size:.75rem;color:var(--text-muted)" class="tabnums">{{ t('product_form.stock_count_unit', n=0) }}</span>
         </div>
-        <textarea id="stock" name="stock" rows="12" placeholder="每行一条库存（如每行一个账号）" oninput="countStock(this)" style="font-family:'SF Mono',Consolas,monospace">{{ stock or '' }}</textarea>
+        <textarea id="stock" name="stock" rows="12" placeholder="{{ t('product_form.stock_placeholder') }}" oninput="countStock(this)" style="font-family:'SF Mono',Consolas,monospace">{{ stock or '' }}</textarea>
         <p class="form-hint">
             {% if editing %}
-            <strong>提示：</strong>当前显示的是剩余可用库存，保存时会自动加上已使用的部分（{{ product.used_stock }} 条）作为新的总库存
+            {{ t('product_form.stock_hint_edit', n=product.used_stock) | safe }}
             {% else %}
-            每行一条，总行数即库存数量；可留空稍后再添加
+            {{ t('product_form.stock_hint_add') }}
             {% endif %}
         </p>
     </div>
     <div class="form-row">
         <button type="submit" class="btn btn-primary" data-loading>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            {{ '保存修改' if editing else '添加商品' }}
+            {{ t('product_form.save_edit') if editing else t('product_form.save_add') }}
         </button>
-        <a href="{{ admin_prefix }}/products" class="btn">取消</a>
+        <a href="{{ admin_prefix }}/products" class="btn">{{ t('common.cancel') }}</a>
     </div>
 </form>
 </div>
 
 <script>
-function countStock(el) {
-    var n = el.value.split('\n').filter(function(l){ return l.trim(); }).length;
-    document.getElementById('stockCount').textContent = n + ' 条';
-}
-(function(){ countStock(document.getElementById('stock')); })();
-document.getElementById('prodForm').addEventListener('submit', function() {
-    var btn = this.querySelector('[data-loading]');
-    if (btn) btn.classList.add('is-loading');
-});
+(function() {
+    var form = document.getElementById('prodForm');
+    var STOCK_TPL = form.dataset.stockTpl;
+    window.countStock = function(el) {
+        var n = el.value.split('\n').filter(function(l){ return l.trim(); }).length;
+        document.getElementById('stockCount').textContent = STOCK_TPL.replace(/__N__/g, n);
+    };
+    countStock(document.getElementById('stock'));
+    form.addEventListener('submit', function() {
+        var btn = this.querySelector('[data-loading]');
+        if (btn) btn.classList.add('is-loading');
+    });
+})();
 </script>
 {% endblock %}

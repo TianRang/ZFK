@@ -426,6 +426,24 @@ body.mario-body {
     word-break: break-word;
 }
 
+.mario-section { margin-top: 1rem; }
+.mario-section:first-of-type { margin-top: 0; }
+.mario-section:last-of-type { margin-bottom: .8rem; }
+.mario-section .mario-note,
+.mario-section .mario-result-body { margin-top: 0; margin-bottom: 0; }
+.mario-section-label {
+    display: inline-block;
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: .62rem;
+    color: var(--m-line);
+    background: var(--m-cream);
+    border: 2px solid var(--m-line);
+    padding: .25rem .55rem;
+    margin-bottom: .45rem;
+    letter-spacing: .08em;
+    box-shadow: 2px 2px 0 var(--m-line);
+}
+
 .mario-result {
     background: #fff;
     border: 3px solid var(--m-line);

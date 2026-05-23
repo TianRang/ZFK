@@ -112,7 +112,7 @@ async def update_prefix(
         ctx = await _build_ctx(
             request, user, db,
             current_prefix=prefix,
-            prefix_error=f"无法写入 .env：{exc}",
+            prefix_error=request.state.t("err.prefix_write", exc=exc),
         )
         return templates.TemplateResponse("admin/settings.html", ctx)
 
@@ -130,15 +130,15 @@ async def update_password(
     db: AsyncSession = Depends(get_db),
 ):
     if not verify_password(old_password, user.password_hash):
-        ctx = await _build_ctx(request, user, db, pwd_error="原密码错误")
+        ctx = await _build_ctx(request, user, db, pwd_error=request.state.t("err.pwd_old"))
         return templates.TemplateResponse("admin/settings.html", ctx)
 
     if new_password != confirm_password:
-        ctx = await _build_ctx(request, user, db, pwd_error="两次密码不一致")
+        ctx = await _build_ctx(request, user, db, pwd_error=request.state.t("err.pwd_mismatch"))
         return templates.TemplateResponse("admin/settings.html", ctx)
 
     if len(new_password) < 6:
-        ctx = await _build_ctx(request, user, db, pwd_error="密码至少6位")
+        ctx = await _build_ctx(request, user, db, pwd_error=request.state.t("err.pwd_short"))
         return templates.TemplateResponse("admin/settings.html", ctx)
 
     user.password_hash = hash_password(new_password)

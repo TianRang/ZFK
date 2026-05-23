@@ -42,14 +42,14 @@ async def add_submit(
     if not name:
         return templates.TemplateResponse("admin/product_form.html", {
             "request": request, "user": user.username, "editing": False,
-            "error": "商品名称不能为空",
+            "error": request.state.t("err.product_form.empty_name"),
         })
 
     existing = await db.execute(select(Product).where(Product.name == name))
     if existing.scalar_one_or_none():
         return templates.TemplateResponse("admin/product_form.html", {
             "request": request, "user": user.username, "editing": False,
-            "error": "该商品名称已存在", "name": name, "stock": stock,
+            "error": request.state.t("err.product_form.duplicate"), "name": name, "stock": stock,
         })
 
     lines = [l for l in stock.split("\n") if l.strip()]
@@ -93,7 +93,7 @@ async def edit_submit(
     if not name:
         return templates.TemplateResponse("admin/product_form.html", {
             "request": request, "user": user.username, "editing": True,
-            "product": product, "error": "商品名称不能为空", "name": name, "stock": stock,
+            "product": product, "error": request.state.t("err.product_form.empty_name"), "name": name, "stock": stock,
         })
 
     if name != product.name:
@@ -101,7 +101,7 @@ async def edit_submit(
         if dup.scalar_one_or_none():
             return templates.TemplateResponse("admin/product_form.html", {
                 "request": request, "user": user.username, "editing": True,
-                "product": product, "error": "该商品名称已存在", "name": name, "stock": stock,
+                "product": product, "error": request.state.t("err.product_form.duplicate"), "name": name, "stock": stock,
             })
 
     lines = [l for l in stock.split("\n") if l.strip()]

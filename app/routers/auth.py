@@ -47,7 +47,7 @@ async def login_submit(
         captcha_img = generate_captcha(sid)
         response = templates.TemplateResponse(
             "auth/login.html", {
-                "request": request, "error": "验证码错误",
+                "request": request, "error": request.state.t("err.captcha_invalid"),
                 "captcha_img": captcha_img, "sid": sid,
             }, status_code=400
         )
@@ -63,7 +63,7 @@ async def login_submit(
         captcha_img = generate_captcha(sid)
         response = templates.TemplateResponse(
             "auth/login.html", {
-                "request": request, "error": "用户名或密码错误",
+                "request": request, "error": request.state.t("err.user_or_pwd"),
                 "captcha_img": captcha_img, "sid": sid,
             }, status_code=400
         )
@@ -105,11 +105,11 @@ async def register_submit(
 
     if password != password_confirm:
         return templates.TemplateResponse(
-            "auth/register.html", {"request": request, "error": "两次密码输入不一致"}, status_code=400
+            "auth/register.html", {"request": request, "error": request.state.t("err.password_mismatch")}, status_code=400
         )
     if len(username) < 3 or len(password) < 6:
         return templates.TemplateResponse(
-            "auth/register.html", {"request": request, "error": "用户名至少3位，密码至少6位"}, status_code=400
+            "auth/register.html", {"request": request, "error": request.state.t("err.short_credentials")}, status_code=400
         )
 
     user = User(username=username, password_hash=hash_password(password), role="admin")

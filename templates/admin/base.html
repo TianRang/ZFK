@@ -4,11 +4,11 @@
 {% else %}
 {# ========== FULL MODE: 完整页面 = 轮盘 shell + 隐藏的初始面板 ========== #}
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{{ 'en' if lang == 'en' else 'zh-CN' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}管理后台{% endblock %}</title>
+    <title>{% block title %}{{ t('auth.admin_panel') }}{% endblock %}</title>
     <link rel="stylesheet" href="/static/css/app.css">
     {% set _site = request.state.site if request.state.site is defined else {} %}
 </head>
@@ -19,29 +19,33 @@
         <header class="wheel-topbar">
             <div class="wheel-brand">
                 <span class="wheel-brand-dot"></span>
-                <span>{{ _site.site_name if _site.site_name else '管理后台' }}</span>
+                <span>{{ _site.site_name if _site.site_name else t('auth.admin_panel') }}</span>
             </div>
             <div class="wheel-user">
+                <span class="lang-pill" style="display:inline-flex;gap:0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:2px;font-size:.72rem;line-height:1;margin-right:.6rem">
+                    <a href="/lang/zh" style="padding:.25rem .55rem;border-radius:999px;text-decoration:none;font-weight:600;color:{% if lang == 'zh' %}#1f2937;background:#fff{% else %}#cbd5e1{% endif %}">中文</a>
+                    <a href="/lang/en" style="padding:.25rem .55rem;border-radius:999px;text-decoration:none;font-weight:600;color:{% if lang == 'en' %}#1f2937;background:#fff{% else %}#cbd5e1{% endif %}">EN</a>
+                </span>
                 <span class="user-avatar">{{ user[0] if user else 'A' }}</span>
                 <span class="wheel-user-name">{{ user }}</span>
                 <form action="{{ admin_prefix }}/logout" method="post" style="display:inline">
-                    <button type="submit" class="btn-logout" title="退出">退出</button>
+                    <button type="submit" class="btn-logout" title="{{ t('admin.logout') }}">{{ t('admin.logout') }}</button>
                 </form>
             </div>
         </header>
 
         <div class="wheel-stage" id="wheelStage" data-admin-prefix="{{ admin_prefix }}">
             {% set wheel_items = [
-                {'key':'dashboard', 'label':'仪表盘',   'href': admin_prefix ~ '/',          'color':'#8b5cf6'},
-                {'key':'cards',     'label':'卡密列表', 'href': admin_prefix ~ '/cards',     'color':'#38bdf8'},
-                {'key':'card_add',  'label':'添加卡密', 'href': admin_prefix ~ '/cards/add', 'color':'#34d399'},
-                {'key':'batch',     'label':'批量导入', 'href': admin_prefix ~ '/cards/batch','color':'#fbbf24'},
-                {'key':'products',  'label':'商品管理', 'href': admin_prefix ~ '/products',  'color':'#fb923c'},
-                {'key':'settings',  'label':'系统设置', 'href': admin_prefix ~ '/settings',  'color':'#f472b6'},
-                {'key':'api_docs',  'label':'API 文档', 'href': admin_prefix ~ '/api-docs',  'color':'#a78bfa'},
-                {'key':'front',     'label':'访问前台', 'href':'/', 'color':'#22d3ee', 'external':true}
+                {'key':'dashboard', 'label': t('admin.menu_dashboard'),   'href': admin_prefix ~ '/',          'color':'#8b5cf6'},
+                {'key':'cards',     'label': t('admin.menu_cards'),       'href': admin_prefix ~ '/cards',     'color':'#38bdf8'},
+                {'key':'card_add',  'label': t('admin.menu_card_add'),    'href': admin_prefix ~ '/cards/add', 'color':'#34d399'},
+                {'key':'batch',     'label': t('admin.menu_batch'),       'href': admin_prefix ~ '/cards/batch','color':'#fbbf24'},
+                {'key':'products',  'label': t('admin.menu_products'),    'href': admin_prefix ~ '/products',  'color':'#fb923c'},
+                {'key':'settings',  'label': t('admin.menu_settings'),    'href': admin_prefix ~ '/settings',  'color':'#f472b6'},
+                {'key':'api_docs',  'label': t('admin.menu_api_docs'),    'href': admin_prefix ~ '/api-docs',  'color':'#a78bfa'},
+                {'key':'front',     'label': t('admin.menu_front'),       'href':'/', 'color':'#22d3ee', 'external':true}
             ] %}
-            <svg class="wheel-svg" viewBox="-160 -160 320 320" id="wheelSvg" aria-label="功能轮盘">
+            <svg class="wheel-svg" viewBox="-160 -160 320 320" id="wheelSvg" aria-label="{{ t('admin.panel_title') }}">
                 <defs>
                     {% for item in wheel_items %}
                     <radialGradient id="wg-{{ item.key }}" cx="50%" cy="50%" r="65%">
@@ -70,7 +74,7 @@
                 <text class="wheel-hub-text" x="0" y="0" text-anchor="middle" dominant-baseline="middle">ZFK</text>
             </svg>
 
-            <div class="wheel-hint" id="wheelHint">将光标移至扇区，点击展开</div>
+            <div class="wheel-hint" id="wheelHint">{{ t('admin.wheel_hint') }}</div>
         </div>
 
         <div class="panel-overlay" id="panelOverlay">
@@ -78,9 +82,9 @@
                 <header class="panel-header">
                     <div class="panel-header-title" id="panelHeaderTitle">
                         <span class="panel-header-dot"></span>
-                        <span id="panelHeaderText">管理面板</span>
+                        <span id="panelHeaderText">{{ t('admin.panel_title') }}</span>
                     </div>
-                    <button class="panel-close" id="panelClose" aria-label="关闭">
+                    <button class="panel-close" id="panelClose" aria-label="{{ t('common.close') }}">
                         <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                     </button>
                 </header>

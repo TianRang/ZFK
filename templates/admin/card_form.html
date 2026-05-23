@@ -1,14 +1,14 @@
 {% extends "admin/base.html" %}
-{% block title %}添加卡密 - 管理后台{% endblock %}
+{% block title %}{{ t('card_form.title_add') }} - {{ t('auth.admin_panel') }}{% endblock %}
 {% block content %}
 <div class="page-header">
     <div>
-        <h1><span class="h1-dot"></span>添加卡密</h1>
-        <p class="page-subtitle">为单张卡密设置内容、类型和说明信息</p>
+        <h1><span class="h1-dot"></span>{{ t('card_form.title_add') }}</h1>
+        <p class="page-subtitle">{{ t('card_form.subtitle_add') }}</p>
     </div>
     <a href="{{ admin_prefix }}/cards" class="btn btn-back">
         <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
-        返回列表
+        {{ t('card_form.return_list') }}
     </a>
 </div>
 
@@ -20,95 +20,107 @@
 {% endif %}
 
 <div class="detail-card">
-<form action="{{ admin_prefix }}/cards/add" method="post" class="form" id="addForm">
+<form action="{{ admin_prefix }}/cards/add" method="post" class="form" id="addForm"
+      data-hint-normal="{{ t('card_form.type_hint_normal') }}"
+      data-hint-points="{{ t('card_form.type_hint_points') }}"
+      data-hint-shared="{{ t('card_form.type_hint_shared') }}"
+      data-content-hint-normal="{{ t('card_form.content_hint_normal') }}"
+      data-content-hint-points-default="{{ t('card_form.content_hint_points_default') }}"
+      data-content-hint-points-tpl="{{ t('card_form.content_hint_points', n='__N__') }}">
     <div class="form-group">
-        <label for="card_type">卡密类型</label>
+        <label for="card_type">{{ t('card_form.card_type') }}</label>
         <select id="card_type" name="card_type" onchange="toggleFields()">
-            <option value="normal" {{ 'selected' if not card_type or card_type == 'normal' }}>通用 — 直接显示内容</option>
-            <option value="points" {{ 'selected' if card_type == 'points' }}>点数 — 按行扣除额度</option>
-            <option value="shared_stock" {{ 'selected' if card_type == 'shared_stock' }}>共享库存 — 从商品库存发货</option>
+            <option value="normal" {{ 'selected' if not card_type or card_type == 'normal' }}>{{ t('card_form.type_normal') }}</option>
+            <option value="points" {{ 'selected' if card_type == 'points' }}>{{ t('card_form.type_points') }}</option>
+            <option value="shared_stock" {{ 'selected' if card_type == 'shared_stock' }}>{{ t('card_form.type_shared') }}</option>
         </select>
         <p class="form-hint" id="typeHint"></p>
     </div>
     <div class="form-group">
-        <label for="key">卡密 <span class="req">*</span></label>
-        <input type="text" id="key" name="key" value="{{ key or '' }}" required placeholder="买家用来提取的卡密字符串" autocomplete="off" spellcheck="false">
-        <p class="form-hint">卡密区分大小写，建议使用足够复杂的字符串</p>
+        <label for="key">{{ t('cards.col_key') }} <span class="req">*</span></label>
+        <input type="text" id="key" name="key" value="{{ key or '' }}" required placeholder="{{ t('card_form.key_placeholder') }}" autocomplete="off" spellcheck="false">
+        <p class="form-hint">{{ t('card_form.key_hint') }}</p>
     </div>
     <div class="form-group" id="contentGroup">
-        <label for="content">内容 <span class="req">*</span></label>
-        <textarea id="content" name="content" rows="6" placeholder="通用类型：填写完整内容&#10;点数类型：每行一条（如每行一个账号）" oninput="updateLineCount()">{{ content or '' }}</textarea>
-        <p class="form-hint" id="contentHint">通用类型：内容会一次性显示给用户</p>
+        <label for="content">{{ t('card_form.content') }} <span class="req">*</span></label>
+        <textarea id="content" name="content" rows="6" placeholder="{{ t('card_form.content_placeholder') }}" oninput="updateLineCount()">{{ content or '' }}</textarea>
+        <p class="form-hint" id="contentHint">{{ t('card_form.content_hint_normal') }}</p>
     </div>
     <div class="form-group" id="productGroup" style="display:none">
-        <label for="product_id">关联商品 <span class="req">*</span></label>
+        <label for="product_id">{{ t('card_form.linked_product') }} <span class="req">*</span></label>
         <select id="product_id" name="product_id">
-            <option value="0">— 请选择商品 —</option>
+            <option value="0">{{ t('card_form.choose_product') }}</option>
             {% for p in products or [] %}
-            <option value="{{ p.id }}" {{ 'selected' if product_id and product_id == p.id }}>{{ p.name }}（剩余 {{ p.total_stock - p.used_stock }} 条）</option>
+            <option value="{{ p.id }}" {{ 'selected' if product_id and product_id == p.id }}>{{ p.name }}{{ t('card_form.product_remaining', n=(p.total_stock - p.used_stock)) }}</option>
             {% endfor %}
         </select>
         {% if not products %}
-        <p class="form-hint" style="color:var(--warning)">尚无商品，请先 <a href="{{ admin_prefix }}/products/add" style="color:var(--primary)">创建商品</a></p>
+        <p class="form-hint" style="color:var(--warning)">{{ t('card_form.no_products_yet') }}<a href="{{ admin_prefix }}/products/add" style="color:var(--primary)">{{ t('card_form.create_product') }}</a></p>
         {% endif %}
     </div>
     <div class="form-group" id="quotaGroup" style="display:none">
-        <label for="total_points">额度 <span class="req">*</span></label>
-        <input type="number" id="total_points" name="total_points" min="1" value="{{ total_points or '' }}" placeholder="该卡密可提取的总次数">
+        <label for="total_points">{{ t('card_form.quota') }} <span class="req">*</span></label>
+        <input type="number" id="total_points" name="total_points" min="1" value="{{ total_points or '' }}" placeholder="{{ t('card_form.quota_placeholder') }}">
     </div>
     <div class="form-group">
-        <label for="description">描述说明 <span class="field-tip">可选</span></label>
-        <textarea id="description" name="description" rows="3" placeholder="教程链接、使用说明等，提取时会展示给用户">{{ description or '' }}</textarea>
+        <label for="description">{{ t('card_form.description') }} <span class="field-tip">{{ t('common.optional') }}</span></label>
+        <textarea id="description" name="description" rows="3" placeholder="{{ t('card_form.description_placeholder') }}">{{ description or '' }}</textarea>
     </div>
     <div class="form-row" style="margin-top:.5rem">
         <button type="submit" class="btn btn-primary" data-loading>
             <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            保存卡密
+            {{ t('card_form.save') }}
         </button>
-        <a href="{{ admin_prefix }}/cards" class="btn">取消</a>
+        <a href="{{ admin_prefix }}/cards" class="btn">{{ t('common.cancel') }}</a>
     </div>
 </form>
 </div>
 
 <script>
-var TYPE_HINTS = {
-    normal: '通用类型：用户输入卡密后将一次性显示全部内容',
-    points: '点数类型：每行算 1 点额度，用户每次提取消耗 N 行内容',
-    shared_stock: '共享库存：多张卡密共享同一商品的库存池'
-};
+(function() {
+    var form = document.getElementById('addForm');
+    var TYPE_HINTS = {
+        normal: form.dataset.hintNormal,
+        points: form.dataset.hintPoints,
+        shared_stock: form.dataset.hintShared
+    };
+    var CONTENT_HINT_NORMAL = form.dataset.contentHintNormal;
+    var CONTENT_HINT_POINTS_DEFAULT = form.dataset.contentHintPointsDefault;
+    var CONTENT_HINT_POINTS_TPL = form.dataset.contentHintPointsTpl;
 
-function toggleFields() {
-    var t = document.getElementById('card_type').value;
-    var cg = document.getElementById('contentGroup');
-    var pg = document.getElementById('productGroup');
-    var qg = document.getElementById('quotaGroup');
-    var ch = document.getElementById('contentHint');
-    if (t === 'shared_stock') {
-        cg.style.display = 'none';
-        pg.style.display = '';
-        qg.style.display = '';
-    } else {
-        cg.style.display = '';
-        pg.style.display = 'none';
-        qg.style.display = 'none';
-        ch.textContent = t === 'points' ? '点数类型：每行 1 点额度，总行数即总额度' : '通用类型：内容会一次性显示给用户';
-    }
-    document.getElementById('typeHint').textContent = TYPE_HINTS[t] || '';
-    updateLineCount();
-}
-function updateLineCount() {
-    var ta = document.getElementById('content');
-    var t = document.getElementById('card_type').value;
-    if (t === 'points' && ta.value.trim()) {
-        var n = ta.value.split('\n').filter(function(l){ return l.trim(); }).length;
-        document.getElementById('contentHint').textContent = '点数类型：当前 ' + n + ' 行 = ' + n + ' 点额度';
-    }
-}
-toggleFields();
+    window.toggleFields = function() {
+        var t = document.getElementById('card_type').value;
+        var cg = document.getElementById('contentGroup');
+        var pg = document.getElementById('productGroup');
+        var qg = document.getElementById('quotaGroup');
+        var ch = document.getElementById('contentHint');
+        if (t === 'shared_stock') {
+            cg.style.display = 'none';
+            pg.style.display = '';
+            qg.style.display = '';
+        } else {
+            cg.style.display = '';
+            pg.style.display = 'none';
+            qg.style.display = 'none';
+            ch.textContent = t === 'points' ? CONTENT_HINT_POINTS_DEFAULT : CONTENT_HINT_NORMAL;
+        }
+        document.getElementById('typeHint').textContent = TYPE_HINTS[t] || '';
+        updateLineCount();
+    };
+    window.updateLineCount = function() {
+        var ta = document.getElementById('content');
+        var t = document.getElementById('card_type').value;
+        if (t === 'points' && ta.value.trim()) {
+            var n = ta.value.split('\n').filter(function(l){ return l.trim(); }).length;
+            document.getElementById('contentHint').textContent = CONTENT_HINT_POINTS_TPL.replace(/__N__/g, n);
+        }
+    };
+    toggleFields();
 
-document.getElementById('addForm').addEventListener('submit', function() {
-    var btn = this.querySelector('[data-loading]');
-    if (btn) btn.classList.add('is-loading');
-});
+    form.addEventListener('submit', function() {
+        var btn = this.querySelector('[data-loading]');
+        if (btn) btn.classList.add('is-loading');
+    });
+})();
 </script>
 {% endblock %}

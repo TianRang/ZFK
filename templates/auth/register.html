@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{{ 'en' if lang == 'en' else 'zh-CN' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>注册 - 管理后台</title>
+    <title>{{ t('auth.register_title') }} - {{ t('auth.admin_panel') }}</title>
     <link rel="stylesheet" href="/static/css/app.css">
     {% set _site = request.state.site if request.state.site is defined else {} %}
 </head>
 <body>
+    <div class="lang-switch" style="position:fixed;top:14px;right:14px;z-index:99;display:flex;gap:0;background:rgba(255,255,255,.92);border:1.5px solid rgba(0,0,0,.18);border-radius:999px;padding:3px;box-shadow:0 2px 6px rgba(0,0,0,.12);font-size:.78rem;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1">
+        <a href="/lang/zh" style="padding:.3rem .65rem;border-radius:999px;text-decoration:none;font-weight:600;{% if lang == 'zh' %}background:#1f2937;color:#fff{% else %}color:#374151{% endif %}">中文</a>
+        <a href="/lang/en" style="padding:.3rem .65rem;border-radius:999px;text-decoration:none;font-weight:600;{% if lang == 'en' %}background:#1f2937;color:#fff{% else %}color:#374151{% endif %}">EN</a>
+    </div>
     <div class="auth-container">
         <div class="auth-card">
             <div class="brand-logo" aria-hidden="true">
@@ -18,8 +22,8 @@
                     <path d="M22 11h-6"></path>
                 </svg>
             </div>
-            <h1>{{ _site.site_name if _site.site_name else '管理后台' }}</h1>
-            <h2>创建管理员账号</h2>
+            <h1>{{ _site.site_name if _site.site_name else t('auth.admin_panel') }}</h1>
+            <h2>{{ t('auth.register_subtitle') }}</h2>
 
             {% if error %}
             <div class="alert alert-error">
@@ -28,24 +32,24 @@
             </div>
             {% endif %}
 
-            <form action="{{ admin_prefix }}/register" method="post" id="regForm">
+            <form action="{{ admin_prefix }}/register" method="post" id="regForm" data-mismatch="{{ t('err.password_mismatch') }}">
                 <div class="form-group">
-                    <label for="username">用户名 <span class="field-tip">至少 3 位</span></label>
-                    <input type="text" id="username" name="username" required minlength="3" autofocus autocomplete="username" placeholder="登录使用的用户名" spellcheck="false">
+                    <label for="username">{{ t('auth.username') }} <span class="field-tip">{{ t('auth.username_min') }}</span></label>
+                    <input type="text" id="username" name="username" required minlength="3" autofocus autocomplete="username" placeholder="{{ t('auth.username_register_placeholder') }}" spellcheck="false">
                 </div>
                 <div class="form-group">
-                    <label for="password">密码 <span class="field-tip">至少 6 位</span></label>
-                    <input type="password" id="password" name="password" required minlength="6" autocomplete="new-password" placeholder="设置一个强密码">
+                    <label for="password">{{ t('auth.password') }} <span class="field-tip">{{ t('auth.password_min') }}</span></label>
+                    <input type="password" id="password" name="password" required minlength="6" autocomplete="new-password" placeholder="{{ t('auth.password_register_placeholder') }}">
                 </div>
                 <div class="form-group">
-                    <label for="password_confirm">确认密码</label>
-                    <input type="password" id="password_confirm" name="password_confirm" required minlength="6" autocomplete="new-password" placeholder="再次输入密码">
+                    <label for="password_confirm">{{ t('auth.confirm_password') }}</label>
+                    <input type="password" id="password_confirm" name="password_confirm" required minlength="6" autocomplete="new-password" placeholder="{{ t('auth.confirm_password_placeholder') }}">
                 </div>
-                <button type="submit" class="btn btn-primary btn-block" data-loading>注册</button>
+                <button type="submit" class="btn btn-primary btn-block" data-loading>{{ t('auth.signup') }}</button>
             </form>
 
-            <p class="auth-link">已有账号？<a href="{{ admin_prefix }}/login">返回登录</a></p>
-            <p class="auth-note">第一个注册的用户将自动成为管理员</p>
+            <p class="auth-link">{{ t('auth.have_account') }}<a href="{{ admin_prefix }}/login">{{ t('auth.signin_link') }}</a></p>
+            <p class="auth-note">{{ t('auth.first_user_admin') }}</p>
         </div>
     </div>
     <script>
@@ -54,7 +58,7 @@
         var c = document.getElementById('password_confirm').value;
         if (p !== c) {
             e.preventDefault();
-            alert('两次密码输入不一致');
+            alert(this.getAttribute('data-mismatch') || 'Passwords do not match');
             return;
         }
         var btn = this.querySelector('[data-loading]');

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{{ 'en' if lang == 'en' else 'zh-CN' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ site_name }}</title>
+    <title>{{ site_name or t('site.default_name') }}</title>
     <link rel="stylesheet" href="/static/css/cartoon.css">
 </head>
 <body class="cartoon-body">
-    <!-- 背景装饰：云朵、星星、爱心 -->
+    {% include "front/_lang_switch.html" %}
     <div class="bg-deco" aria-hidden="true">
         <div class="cloud cloud-1"></div>
         <div class="cloud cloud-2"></div>
@@ -19,28 +19,21 @@
     </div>
 
     <main class="cartoon-stage">
-        <!-- 吉祥物 -->
         <div class="mascot" aria-hidden="true">
             <div class="mascot-shadow"></div>
             <svg class="mascot-svg" viewBox="0 0 120 120" fill="none">
-                <!-- 身体 -->
                 <ellipse cx="60" cy="78" rx="38" ry="34" fill="#ffd9b8" stroke="#3b2a20" stroke-width="3"/>
-                <!-- 耳朵 -->
                 <path d="M28 52 L22 28 L46 42 Z" fill="#ffd9b8" stroke="#3b2a20" stroke-width="3" stroke-linejoin="round"/>
                 <path d="M92 52 L98 28 L74 42 Z" fill="#ffd9b8" stroke="#3b2a20" stroke-width="3" stroke-linejoin="round"/>
                 <path d="M30 48 L27 36 L40 44 Z" fill="#ff8aa1"/>
                 <path d="M90 48 L93 36 L80 44 Z" fill="#ff8aa1"/>
-                <!-- 脸颊腮红 -->
                 <ellipse cx="38" cy="80" rx="6" ry="4" fill="#ffb3c1"/>
                 <ellipse cx="82" cy="80" rx="6" ry="4" fill="#ffb3c1"/>
-                <!-- 眼睛 -->
                 <circle class="eye" cx="48" cy="70" r="4" fill="#3b2a20"/>
                 <circle class="eye" cx="72" cy="70" r="4" fill="#3b2a20"/>
                 <circle cx="49" cy="69" r="1.2" fill="#fff"/>
                 <circle cx="73" cy="69" r="1.2" fill="#fff"/>
-                <!-- 嘴巴 -->
                 <path d="M54 84 Q60 90 66 84" stroke="#3b2a20" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-                <!-- 胡须 -->
                 <path d="M30 78 L18 76" stroke="#3b2a20" stroke-width="1.6" stroke-linecap="round"/>
                 <path d="M30 82 L18 84" stroke="#3b2a20" stroke-width="1.6" stroke-linecap="round"/>
                 <path d="M90 78 L102 76" stroke="#3b2a20" stroke-width="1.6" stroke-linecap="round"/>
@@ -49,8 +42,8 @@
         </div>
 
         <section class="cartoon-card">
-            <h1 class="cartoon-title">{{ site_name }}</h1>
-            <p class="cartoon-subtitle">{{ site_subtitle }}</p>
+            <h1 class="cartoon-title">{{ site_name or t('site.default_name') }}</h1>
+            <p class="cartoon-subtitle">{{ site_subtitle or t('site.default_subtitle') }}</p>
 
             {% if error %}
             <div class="cartoon-alert">
@@ -65,57 +58,65 @@
                 <input type="hidden" name="step" value="2">
                 <div class="form-group">
                     <label for="amount">
-                        提取数量
-                        <span class="tag tag-success">剩余 {{ remaining }}</span>
+                        {{ t('front.amount') }}
+                        <span class="tag tag-success">{{ t('front.remaining') }} {{ remaining }}</span>
                     </label>
                     <div class="cartoon-stepper" data-min="1" data-max="{{ remaining }}">
-                        <button type="button" data-step="-1" aria-label="减少">−</button>
+                        <button type="button" data-step="-1" aria-label="-">−</button>
                         <input type="number" id="amount" name="amount" min="1" max="{{ remaining }}" value="1" required autofocus>
-                        <button type="button" data-step="1" aria-label="增加">+</button>
+                        <button type="button" data-step="1" aria-label="+">+</button>
                     </div>
-                    <p class="form-hint">每次最多提取 {{ remaining }} 条 ฅ^•ﻌ•^ฅ</p>
+                    <p class="form-hint">{{ t('front.remaining_max_cute', n=remaining) }}</p>
                 </div>
                 {% if card_description %}<div class="cartoon-note">{{ card_description }}</div>{% endif %}
                 <button type="submit" class="cartoon-btn cartoon-btn-primary" data-loading>
-                    确认提取
+                    {{ t('front.confirm_extract') }}
                 </button>
             </form>
             <form action="/" method="get" style="margin-top:.6rem">
-                <button type="submit" class="cartoon-btn cartoon-btn-ghost">← 返回</button>
+                <button type="submit" class="cartoon-btn cartoon-btn-ghost">← {{ t('common.back') }}</button>
             </form>
 
             {% elif content %}
             <div class="cartoon-result">
                 <div class="result-header">
                     <span class="result-emoji">🎉</span>
-                    <span>{{ extract_info or '提取成功啦' }}</span>
+                    <span>{{ extract_info or t('front.extract_success_cute') }}</span>
                 </div>
-                {% if card_description %}<div class="cartoon-note">{{ card_description }}</div>{% endif %}
-                <pre class="cartoon-result-body" id="result-text">{{ content }}</pre>
-                <button id="copyBtn" onclick="doCopy()" class="cartoon-btn cartoon-btn-warm">
-                    复制内容
+                {% if card_description %}
+                <div class="cartoon-section">
+                    <div class="cartoon-section-label">{{ t('front.section_desc') }}</div>
+                    <div class="cartoon-note">{{ card_description }}</div>
+                </div>
+                {% endif %}
+                <div class="cartoon-section">
+                    <div class="cartoon-section-label">{{ t('front.section_content') }}</div>
+                    <pre class="cartoon-result-body" id="result-text">{{ content }}</pre>
+                </div>
+                <button id="copyBtn" onclick="doCopy()" class="cartoon-btn cartoon-btn-warm" data-copied-text="{{ t('common.copied') }} ✓">
+                    {{ t('front.copy_content') }}
                 </button>
             </div>
             <form action="/" method="get" style="margin-top:.6rem">
-                <button type="submit" class="cartoon-btn cartoon-btn-ghost">再次提取</button>
+                <button type="submit" class="cartoon-btn cartoon-btn-ghost">{{ t('front.again') }}</button>
             </form>
 
             {% else %}
             <form action="/" method="post" class="cartoon-form">
                 <input type="hidden" name="step" value="1">
                 <div class="form-group">
-                    <label for="key">卡密</label>
-                    <input type="text" id="key" name="key" placeholder="请输入您的卡密 ✿" value="{{ key or '' }}" required autofocus autocomplete="off" spellcheck="false">
+                    <label for="key">{{ t('front.card_key') }}</label>
+                    <input type="text" id="key" name="key" placeholder="{{ t('front.card_key_placeholder_cute') }}" value="{{ key or '' }}" required autofocus autocomplete="off" spellcheck="false">
                 </div>
                 <div class="form-group">
-                    <label for="captcha">验证码</label>
+                    <label for="captcha">{{ t('front.captcha') }}</label>
                     <div class="captcha-row">
-                        <input type="text" id="captcha" name="captcha" placeholder="四位数字" required maxlength="4" autocomplete="off">
-                        <img id="captchaImg" src="{{ captcha_img }}" alt="验证码" onclick="refreshCaptcha()" title="点击刷新">
+                        <input type="text" id="captcha" name="captcha" placeholder="{{ t('front.captcha_placeholder_short') }}" required maxlength="4" autocomplete="off">
+                        <img id="captchaImg" src="{{ captcha_img }}" alt="{{ t('front.captcha') }}" onclick="refreshCaptcha()" title="{{ t('common.refresh') }}">
                     </div>
                 </div>
                 <button type="submit" class="cartoon-btn cartoon-btn-primary" data-loading>
-                    提取 →
+                    {{ t('front.extract_arrow') }}
                 </button>
             </form>
 
@@ -133,7 +134,8 @@
         if (!text || !btn) return;
         navigator.clipboard.writeText(text.innerText).then(function() {
             var html = btn.innerHTML;
-            btn.innerHTML = '已复制 ✓';
+            var copied = btn.getAttribute('data-copied-text') || 'Copied ✓';
+            btn.innerHTML = copied;
             btn.classList.add('is-copied');
             setTimeout(function() {
                 btn.innerHTML = html;

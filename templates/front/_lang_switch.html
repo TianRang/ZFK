@@ -1,0 +1,5 @@
+{# 极简语言切换器：固定在右上角，三套前台模板共用 #}
+<div class="lang-switch" style="position:fixed;top:14px;right:14px;z-index:99;display:flex;gap:0;background:rgba(255,255,255,.92);border:1.5px solid rgba(0,0,0,.18);border-radius:999px;padding:3px;box-shadow:0 2px 6px rgba(0,0,0,.12);font-size:.78rem;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1">
+    <a href="/lang/zh" style="padding:.3rem .65rem;border-radius:999px;text-decoration:none;font-weight:600;{% if lang == 'zh' %}background:#1f2937;color:#fff{% else %}color:#374151{% endif %}">中文</a>
+    <a href="/lang/en" style="padding:.3rem .65rem;border-radius:999px;text-decoration:none;font-weight:600;{% if lang == 'en' %}background:#1f2937;color:#fff{% else %}color:#374151{% endif %}">EN</a>
+</div>

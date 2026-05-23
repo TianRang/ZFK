@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{{ 'en' if lang == 'en' else 'zh-CN' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ site_name }}</title>
+    <title>{{ site_name or t('site.default_name') }}</title>
     <link rel="stylesheet" href="/static/css/mario.css">
 </head>
 <body class="mario-body">
-    <!-- 背景：云朵、山丘、灌木、? 砖块 -->
+    {% include "front/_lang_switch.html" %}
     <div class="mario-bg" aria-hidden="true">
         <div class="m-cloud m-cloud-1"></div>
         <div class="m-cloud m-cloud-2"></div>
@@ -30,8 +30,8 @@
                 <span class="mario-coin"></span>
                 <span class="mario-coin"></span>
             </div>
-            <h1 class="mario-title">{{ site_name }}</h1>
-            <p class="mario-subtitle">{{ site_subtitle }}</p>
+            <h1 class="mario-title">{{ site_name or t('site.default_name') }}</h1>
+            <p class="mario-subtitle">{{ site_subtitle or t('site.default_subtitle') }}</p>
 
             {% if error %}
             <div class="mario-alert">
@@ -46,57 +46,65 @@
                 <input type="hidden" name="step" value="2">
                 <div class="form-group">
                     <label for="amount">
-                        AMOUNT
+                        {{ t('front.amount_pixel') }}
                         <span class="tag tag-success">x {{ remaining }}</span>
                     </label>
                     <div class="mario-stepper" data-min="1" data-max="{{ remaining }}">
-                        <button type="button" data-step="-1" aria-label="减少">-</button>
+                        <button type="button" data-step="-1" aria-label="-">-</button>
                         <input type="number" id="amount" name="amount" min="1" max="{{ remaining }}" value="1" required autofocus>
-                        <button type="button" data-step="1" aria-label="增加">+</button>
+                        <button type="button" data-step="1" aria-label="+">+</button>
                     </div>
-                    <p class="form-hint">每次最多提取 {{ remaining }} 条</p>
+                    <p class="form-hint">{{ t('front.remaining_max', n=remaining) }}</p>
                 </div>
                 {% if card_description %}<div class="mario-note">{{ card_description }}</div>{% endif %}
                 <button type="submit" class="mario-btn mario-btn-primary" data-loading>
-                    GO!
+                    {{ t('front.go') }}
                 </button>
             </form>
             <form action="/" method="get" style="margin-top:.7rem">
-                <button type="submit" class="mario-btn mario-btn-ghost">&laquo; BACK</button>
+                <button type="submit" class="mario-btn mario-btn-ghost">&laquo; {{ t('common.back') }}</button>
             </form>
 
             {% elif content %}
             <div class="mario-result">
                 <div class="result-header">
                     <span class="result-emoji">★</span>
-                    <span>{{ extract_info or 'LEVEL CLEAR!' }}</span>
+                    <span>{{ extract_info or t('front.extract_success_pixel') }}</span>
                 </div>
-                {% if card_description %}<div class="mario-note">{{ card_description }}</div>{% endif %}
-                <pre class="mario-result-body" id="result-text">{{ content }}</pre>
-                <button id="copyBtn" onclick="doCopy()" class="mario-btn mario-btn-coin">
-                    COPY
+                {% if card_description %}
+                <div class="mario-section">
+                    <div class="mario-section-label">{{ t('front.section_desc_pixel') }}</div>
+                    <div class="mario-note">{{ card_description }}</div>
+                </div>
+                {% endif %}
+                <div class="mario-section">
+                    <div class="mario-section-label">{{ t('front.section_content_pixel') }}</div>
+                    <pre class="mario-result-body" id="result-text">{{ content }}</pre>
+                </div>
+                <button id="copyBtn" onclick="doCopy()" class="mario-btn mario-btn-coin" data-copied-text="{{ t('front.copied_pixel') }}">
+                    {{ t('front.copy') }}
                 </button>
             </div>
             <form action="/" method="get" style="margin-top:.7rem">
-                <button type="submit" class="mario-btn mario-btn-pipe">1-2 NEXT</button>
+                <button type="submit" class="mario-btn mario-btn-pipe">{{ t('front.again_pixel') }}</button>
             </form>
 
             {% else %}
             <form action="/" method="post" class="mario-form">
                 <input type="hidden" name="step" value="1">
                 <div class="form-group">
-                    <label for="key">CARD KEY</label>
-                    <input type="text" id="key" name="key" placeholder="ENTER YOUR KEY" value="{{ key or '' }}" required autofocus autocomplete="off" spellcheck="false">
+                    <label for="key">{{ t('front.card_key') }}</label>
+                    <input type="text" id="key" name="key" placeholder="{{ t('front.card_key_placeholder_pixel') }}" value="{{ key or '' }}" required autofocus autocomplete="off" spellcheck="false">
                 </div>
                 <div class="form-group">
-                    <label for="captcha">CAPTCHA</label>
+                    <label for="captcha">{{ t('front.captcha') }}</label>
                     <div class="captcha-row">
-                        <input type="text" id="captcha" name="captcha" placeholder="4 DIGITS" required maxlength="4" autocomplete="off">
-                        <img id="captchaImg" src="{{ captcha_img }}" alt="验证码" onclick="refreshCaptcha()" title="点击刷新">
+                        <input type="text" id="captcha" name="captcha" placeholder="{{ t('front.captcha_placeholder_pixel') }}" required maxlength="4" autocomplete="off">
+                        <img id="captchaImg" src="{{ captcha_img }}" alt="{{ t('front.captcha') }}" onclick="refreshCaptcha()" title="{{ t('common.refresh') }}">
                     </div>
                 </div>
                 <button type="submit" class="mario-btn mario-btn-primary" data-loading>
-                    START &raquo;
+                    {{ t('front.extract_pixel') }}
                 </button>
             </form>
 
@@ -114,7 +122,8 @@
         if (!text || !btn) return;
         navigator.clipboard.writeText(text.innerText).then(function() {
             var html = btn.innerHTML;
-            btn.innerHTML = 'OK!';
+            var copied = btn.getAttribute('data-copied-text') || 'OK!';
+            btn.innerHTML = copied;
             btn.classList.add('is-copied');
             setTimeout(function() {
                 btn.innerHTML = html;

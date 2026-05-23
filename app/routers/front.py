@@ -14,7 +14,6 @@ from app.templating import templates
 
 router = APIRouter()
 
-# 同进程内串行化「读 → 切片 → 写回」环节，分别按 card.id 与 product.id 加锁
 _card_locks: dict[int, asyncio.Lock] = {}
 _product_locks: dict[int, asyncio.Lock] = {}
 
@@ -78,6 +77,7 @@ async def retrieve(
 ):
     site = request.state.site or {}
     sid = _get_session_id(request)
+    t = request.state.t
 
     def ctx_form(**kw):
         return {
@@ -90,22 +90,22 @@ async def retrieve(
 
     if step == "1":
         if not verify_captcha(sid, captcha):
-            return _render(request, ctx_form(error="验证码错误", key=key), sid)
+            return _render(request, ctx_form(error=t("err.captcha_invalid"), key=key), sid)
 
         key = key.strip()
         if not key:
-            return _render(request, ctx_form(error="请输入卡密"), sid)
+            return _render(request, ctx_form(error=t("err.empty_key")), sid)
 
         result = await db.execute(select(CardKey).where(CardKey.key == key))
         card = result.scalar_one_or_none()
 
         if not card:
-            return _render(request, ctx_form(error="卡密不存在，请检查输入", key=key), sid)
+            return _render(request, ctx_form(error=t("err.key_not_found"), key=key), sid)
 
         if card.card_type in ("points", "shared_stock"):
             remaining = card.total_points - card.used_points
             if remaining <= 0:
-                return _render(request, ctx_form(error="该卡密额度已用完", key=key), sid)
+                return _render(request, ctx_form(error=t("err.key_used_up"), key=key), sid)
             return _render(request, ctx_plain(
                 key=key, points_step=True, remaining=remaining,
                 card_description=card.description,
@@ -118,29 +118,28 @@ async def retrieve(
     elif step == "2":
         key = key.strip()
         if not key or amount is None or amount < 1:
-            return _render(request, ctx_form(error="请输入有效的提取数量", key=key), sid)
+            return _render(request, ctx_form(error=t("err.amount_invalid"), key=key), sid)
 
         result = await db.execute(select(CardKey).where(CardKey.key == key))
         card = result.scalar_one_or_none()
 
         if not card or card.card_type not in ("points", "shared_stock"):
-            return _render(request, ctx_form(error="卡密无效", key=key), sid)
+            return _render(request, ctx_form(error=t("err.key_invalid"), key=key), sid)
 
         if card.card_type == "shared_stock":
             async with _card_lock(card.id), _product_lock(card.product_id or 0):
-                # 在锁内重新加载 card / product，确保读到最新 used_points / stock
                 card = (await db.execute(
                     select(CardKey).where(CardKey.id == card.id)
                 )).scalar_one_or_none()
                 if not card:
-                    return _render(request, ctx_form(error="卡密无效", key=key), sid)
+                    return _render(request, ctx_form(error=t("err.key_invalid"), key=key), sid)
 
                 remaining = card.total_points - card.used_points
                 if remaining <= 0:
-                    return _render(request, ctx_form(error="该卡密额度已用完", key=key), sid)
+                    return _render(request, ctx_form(error=t("err.key_used_up"), key=key), sid)
                 if amount > remaining:
                     return _render(request, ctx_plain(
-                        error=f"提取数量超出剩余额度（剩余 {remaining}）",
+                        error=t("err.amount_exceed", n=remaining),
                         key=key, points_step=True, remaining=remaining,
                     ), sid)
 
@@ -148,16 +147,15 @@ async def retrieve(
                     select(Product).where(Product.id == card.product_id)
                 )).scalar_one_or_none()
                 if not product:
-                    return _render(request, ctx_form(error="关联商品不存在", key=key), sid)
+                    return _render(request, ctx_form(error=t("err.product_missing"), key=key), sid)
 
                 stock_lines = [l for l in product.stock.split("\n") if l.strip()]
                 if len(stock_lines) < amount:
                     return _render(request, ctx_plain(
-                        error=f"商品库存不足（当前库存 {len(stock_lines)}）",
+                        error=t("err.stock_insufficient", n=len(stock_lines)),
                         key=key, points_step=True, remaining=remaining,
                     ), sid)
 
-                # 抢占式更新 card.used_points：仅当未超额时成功
                 claim = await db.execute(
                     update(CardKey)
                     .where(
@@ -168,7 +166,7 @@ async def retrieve(
                 )
                 if claim.rowcount != 1:
                     await db.rollback()
-                    return _render(request, ctx_form(error="额度不足，请刷新后重试", key=key), sid)
+                    return _render(request, ctx_form(error=t("err.quota_race"), key=key), sid)
 
                 extracted = stock_lines[:amount]
                 product.stock = "\n".join(stock_lines[amount:])
@@ -177,24 +175,23 @@ async def retrieve(
 
                 return _render(request, ctx_plain(
                     content="\n".join(extracted), key=key,
-                    extract_info=f"已提取 {amount} 条，剩余额度 {remaining - amount}",
+                    extract_info=t("info.extracted_with_quota", n=amount, r=remaining - amount),
                     card_description=card.description,
                 ), sid)
         else:
-            # points 类型：在 per-card 锁内做读-切片-写回，避免两个请求都抢到额度后切到同一份 content
             async with _card_lock(card.id):
                 card = (await db.execute(
                     select(CardKey).where(CardKey.id == card.id)
                 )).scalar_one_or_none()
                 if not card:
-                    return _render(request, ctx_form(error="卡密无效", key=key), sid)
+                    return _render(request, ctx_form(error=t("err.key_invalid"), key=key), sid)
 
                 remaining = card.total_points - card.used_points
                 if remaining <= 0:
-                    return _render(request, ctx_form(error="该卡密额度已用完", key=key), sid)
+                    return _render(request, ctx_form(error=t("err.key_used_up"), key=key), sid)
                 if amount > remaining:
                     return _render(request, ctx_plain(
-                        error=f"提取数量超出剩余额度（剩余 {remaining}）",
+                        error=t("err.amount_exceed", n=remaining),
                         key=key, points_step=True, remaining=remaining,
                     ), sid)
 
@@ -208,7 +205,7 @@ async def retrieve(
                 )
                 if claim.rowcount != 1:
                     await db.rollback()
-                    return _render(request, ctx_form(error="额度不足，请刷新后重试", key=key), sid)
+                    return _render(request, ctx_form(error=t("err.quota_race"), key=key), sid)
 
                 lines = [l for l in (card.content or "").split("\n") if l.strip()]
                 extracted = lines[:amount]
@@ -220,8 +217,8 @@ async def retrieve(
 
                 return _render(request, ctx_plain(
                     content="\n".join(extracted), key=key,
-                    extract_info=f"已提取 {amount} 条，剩余 {remaining - amount} 条",
+                    extract_info=t("info.extracted_with_count", n=amount, r=remaining - amount),
                     card_description=card.description,
                 ), sid)
 
-    return _render(request, ctx_form(error="无效请求"), sid)
+    return _render(request, ctx_form(error=t("err.invalid_request")), sid)

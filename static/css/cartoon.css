@@ -339,6 +339,25 @@ body.cartoon-body {
     word-break: break-word;
 }
 
+.cartoon-section { margin-top: 1rem; }
+.cartoon-section:first-of-type { margin-top: 0; }
+.cartoon-section:last-of-type { margin-bottom: .8rem; }
+.cartoon-section .cartoon-note,
+.cartoon-section .cartoon-result-body { margin-top: 0; margin-bottom: 0; }
+.cartoon-section-label {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 800;
+    color: var(--c-text);
+    background: #fff5d1;
+    border: 2px solid var(--c-line);
+    border-radius: 999px;
+    padding: .15rem .65rem;
+    margin-bottom: .45rem;
+    letter-spacing: .04em;
+    box-shadow: 0 2px 0 rgba(59,42,32,0.18);
+}
+
 .cartoon-result {
     background: var(--c-cream);
     border: 2.5px solid var(--c-line);
